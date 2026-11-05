@@ -109,13 +109,11 @@ app.include_router(interviews.router)
 app.include_router(web_router)
 
 
-@app.get("/")
+from fastapi.responses import RedirectResponse
+
+@app.get("/", include_in_schema=False)
 def root():
-    return {
-        "message": "Enterprise Recruitment ATS API",
-        "dashboard": "/login",
-        "docs": "/docs",
-    }
+    return RedirectResponse(url="/login", status_code=302)
 
 
 @app.get("/health")
