@@ -1,6 +1,6 @@
 """Phase 7 additive models. Import in Alembic env.py and application startup."""
 from datetime import datetime, timezone
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from app.database import Base
 
@@ -33,3 +33,16 @@ class JobRequirement(Base):
     graduation_year_max: Mapped[int | None] = mapped_column(Integer, nullable=True)
     minimum_experience_months: Mapped[int | None] = mapped_column(Integer, nullable=True)
     required_skills: Mapped[str | None] = mapped_column(Text, nullable=True)
+    employment_type: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    work_mode: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    department: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    openings: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    maximum_experience_months: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    preferred_skills: Mapped[str | None] = mapped_column(Text, nullable=True)
+    eligible_degrees: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    minimum_cgpa: Mapped[float | None] = mapped_column(Numeric(4, 2), nullable=True)
+    minimum_tenth_percentage: Mapped[float | None] = mapped_column(Numeric(5, 2), nullable=True)
+    minimum_twelfth_percentage: Mapped[float | None] = mapped_column(Numeric(5, 2), nullable=True)
+    maximum_active_backlogs: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    application_deadline: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+

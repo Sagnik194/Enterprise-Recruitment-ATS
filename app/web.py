@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Application, Interview, Job, User
+from app.phase7_models import JobRequirement
 from app.security import verify_password
 
 router = APIRouter(tags=["Web Dashboard"])
@@ -164,6 +165,18 @@ def dashboard(request: Request, db: Session = Depends(get_db),
     if user.role == "recruiter":
         jobs = db.scalars(select(Job).where(Job.recruiter_id == user.id)
                           .order_by(Job.created_at.desc(), Job.id.desc())).all()
+        job_ids = [job.id for job in jobs]
+        requirements = {}
+
+        if job_ids:
+            requirements = {
+                req.job_id: req
+                for req in db.scalars(
+                    select(JobRequirement).where(
+                        JobRequirement.job_id.in_(job_ids)
+                    )
+                ).all()
+            }
         stmt = select(Application).join(Job).join(User, Application.candidate_id == User.id).where(Job.recruiter_id == user.id)
         allowed_statuses = {"applied", "shortlisted", "interview_scheduled", "selected", "rejected", "withdrawn"}
         if app_status in allowed_statuses:
@@ -177,9 +190,19 @@ def dashboard(request: Request, db: Session = Depends(get_db),
         interviews = db.scalars(select(Interview).join(Application).join(Job)
                                 .where(Job.recruiter_id == user.id)
                                 .order_by(Interview.scheduled_at.desc(), Interview.id.desc())).all()
-        return render(request, "recruiter.html", user=user, jobs=jobs, applications=applications,
-                      candidates=candidates, job_titles={j.id: j.title for j in jobs},
-                      interviews=interviews, app_status=app_status, candidate_q=candidate_q)
+        return render(
+            request,
+            "recruiter.html",
+            user=user,
+            jobs=jobs,
+            applications=applications,
+            candidates=candidates,
+            job_titles={j.id: j.title for j in jobs},
+            interviews=interviews,
+            app_status=app_status,
+            candidate_q=candidate_q,
+            requirements=requirements,
+        )
     if user.role == "admin":
         stats = {"users": db.scalar(select(func.count(User.id))) or 0,
                  "jobs": db.scalar(select(func.count(Job.id))) or 0,
