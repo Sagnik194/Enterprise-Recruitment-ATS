@@ -1,0 +1,167 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container py-4">
+
+  <div class="mb-4">
+    <a href="/dashboard" class="btn btn-outline-secondary btn-sm">
+      Back to Jobs
+    </a>
+    <h2 class="mt-3">Job Application</h2>
+    <p class="text-muted">
+      Complete your details before submitting your application.
+    </p>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <h4>{{ job.title }}</h4>
+      <p class="text-muted mb-1">{{ job.location }}</p>
+      <p>{{ job.description }}</p>
+
+      {% if requirements %}
+        <p>
+          <strong>Required skills:</strong>
+          {{ requirements.required_skills or "Not specified" }}
+        </p>
+        <p>
+          <strong>Eligible degrees:</strong>
+          {{ requirements.eligible_degrees or "Not specified" }}
+        </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <form id="application-form" class="row g-3">
+
+    <div class="col-12">
+      <h4>1. Personal Information</h4>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Full Name *</label>
+      <input class="form-control" name="full_name"
+             value="{{ user.full_name }}" required>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Email *</label>
+      <input class="form-control" type="email" name="email"
+             value="{{ user.email }}" readonly>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Phone Number *</label>
+      <input class="form-control" name="phone"
+             maxlength="20" required>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Current City *</label>
+      <input class="form-control" name="city" required>
+    </div>
+
+    <div class="col-12 mt-4">
+      <h4>2. Educational Qualifications</h4>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Degree *</label>
+      <input class="form-control" name="degree"
+             placeholder="B.Tech Information Technology" required>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">College / University *</label>
+      <input class="form-control" name="college" required>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Graduation Year *</label>
+      <input class="form-control" type="number"
+             name="graduation_year" min="1950" max="2200" required>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">CGPA (out of 10)</label>
+      <input class="form-control" type="number"
+             name="cgpa" min="0" max="10" step="0.01">
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Active Backlogs</label>
+      <input class="form-control" type="number"
+             name="active_backlogs" min="0" value="0">
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">10th Percentage</label>
+      <input class="form-control" type="number"
+             name="tenth_percentage" min="0" max="100" step="0.01">
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">12th Percentage</label>
+      <input class="form-control" type="number"
+             name="twelfth_percentage" min="0" max="100" step="0.01">
+    </div>
+
+    <div class="col-12 mt-4">
+      <h4>3. Technical Information</h4>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Experience (months) *</label>
+      <input class="form-control" type="number"
+             name="experience_months" min="0" value="0" required>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">GitHub URL</label>
+      <input class="form-control" type="url" name="github_url">
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">LinkedIn URL</label>
+      <input class="form-control" type="url" name="linkedin_url">
+    </div>
+
+    <div class="col-12">
+      <label class="form-label">Technical Skills *</label>
+      <textarea class="form-control" name="skills"
+                rows="3" required
+                placeholder="Python, FastAPI, SQL, Git"></textarea>
+    </div>
+
+    <div class="col-12 mt-4">
+      <h4>4. Document Upload</h4>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Resume (PDF) *</label>
+      <input class="form-control" type="file"
+             name="resume" accept=".pdf,application/pdf" required>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Supporting Document (Optional)</label>
+      <input class="form-control" type="file"
+             name="certificate" accept=".pdf,application/pdf">
+    </div>
+
+    <div class="col-12 mt-4">
+      <div class="alert alert-info">
+        Application submission will be enabled after we implement
+        secure document storage and database persistence.
+      </div>
+      <button class="btn btn-primary" type="button" disabled>
+        Submit Application — Coming Next
+      </button>
+    </div>
+
+  </form>
+</div>
+
+{% endblock %}

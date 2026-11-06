@@ -212,7 +212,50 @@ def dashboard(request: Request, db: Session = Depends(get_db),
         return render(request, "admin.html", user=user, stats=stats, users=users)
     raise HTTPException(403, "Unknown role")
 
+@router.get("/web/apply/{job_id}")
+def application_form(
+    job_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    user = require_user(request, db, "candidate")
 
+    if user is None:
+        return redirect("/login")
+
+    job = db.scalar(
+        select(Job).where(
+            Job.id == job_id,
+            Job.status == "open"
+        )
+    )
+
+    if job is None:
+        raise HTTPException(404, "Open job not found")
+
+    existing = db.scalar(
+        select(Application).where(
+            Application.candidate_id == user.id,
+            Application.job_id == job_id
+        )
+    )
+
+    if existing is not None:
+        return redirect(notice="already_applied")
+
+    requirements = db.scalar(
+        select(JobRequirement).where(
+            JobRequirement.job_id == job_id
+        )
+    )
+
+    return render(
+        request,
+        "apply_job.html",
+        user=user,
+        job=job,
+        requirements=requirements
+    )
 @router.post("/web/apply/{job_id}")
 def apply(job_id: int, request: Request, csrf: str = Form(...), db: Session = Depends(get_db)):
     check_csrf(request, csrf)
