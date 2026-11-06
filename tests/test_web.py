@@ -217,11 +217,43 @@ def test_candidate_can_apply_from_web(client):
     dashboard = http.get("/dashboard")
     csrf = get_csrf(dashboard.text)
 
-    response = http.post(
-        f"/web/apply/{job_id}",
-        data={"csrf": csrf},
-        follow_redirects=False,
-    )
+    from unittest.mock import patch
+
+    application_data = {
+        "csrf": csrf,
+        "full_name": "Test Candidate",
+        "email": "candidate@example.com",
+        "phone": "9876543210",
+        "city": "Kolkata",
+        "degree": "B.Tech Information Technology",
+        "college": "Test Engineering College",
+        "graduation_year": "2027",
+        "cgpa": "8.50",
+        "active_backlogs": "0",
+        "tenth_percentage": "76",
+        "twelfth_percentage": "72",
+        "experience_months": "0",
+        "github_url": "https://github.com/testcandidate",
+        "linkedin_url": "https://linkedin.com/in/testcandidate",
+        "skills": "Python, FastAPI, SQL, Git",
+    }
+
+    with patch(
+        "app.web.upload_pdf",
+        return_value="resumes/test-resume.pdf",
+    ):
+        response = http.post(
+            f"/web/apply/{job_id}",
+            data=application_data,
+            files={
+                "resume": (
+                    "resume.pdf",
+                    b"%PDF-1.4\nTest PDF content\n%%EOF",
+                    "application/pdf",
+                )
+            },
+            follow_redirects=False,
+        )
 
     assert response.status_code == 303
 

@@ -5,15 +5,37 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.database import Base, engine
+
+# ==========================================
+# IMPORT ALL SQLALCHEMY MODELS
+# ==========================================
+
 from app import models
+
+# Phase 7:
+# Candidate profiles, resumes, job requirements
+import app.phase7_models
+
+# Phase 10B:
+# Application details and document metadata
+import app.phase10_models
+
+
+# ==========================================
+# ALEMBIC CONFIGURATION
+# ==========================================
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-import app.phase7_models
+
 target_metadata = Base.metadata
 
+
+# ==========================================
+# OFFLINE MIGRATIONS
+# ==========================================
 
 def run_migrations_offline():
     context.configure(
@@ -30,6 +52,10 @@ def run_migrations_offline():
         context.run_migrations()
 
 
+# ==========================================
+# ONLINE MIGRATIONS
+# ==========================================
+
 def run_migrations_online():
     with engine.connect() as connection:
         context.configure(
@@ -41,6 +67,10 @@ def run_migrations_online():
         with context.begin_transaction():
             context.run_migrations()
 
+
+# ==========================================
+# RUN MIGRATIONS
+# ==========================================
 
 if context.is_offline_mode():
     run_migrations_offline()

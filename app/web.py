@@ -1,11 +1,13 @@
 import secrets
+import re
+import logging
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal, InvalidOperation
 from math import ceil
 from pathlib import Path
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Form, File, UploadFile, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import func, or_, select
@@ -15,6 +17,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Application, Interview, Job, User
 from app.phase7_models import JobRequirement
+from app.phase10_models import ApplicationDetail, ApplicationDocument
+from app.supabase_storage import upload_pdf, delete_document
 from app.security import verify_password
 
 router = APIRouter(tags=["Web Dashboard"])
@@ -256,23 +260,152 @@ def application_form(
         job=job,
         requirements=requirements
     )
+MAX_DOCUMENT_SIZE = 5 * 1024 * 1024
+logger = logging.getLogger(__name__)
+
+
+async def validate_application_pdf(uploaded_file: UploadFile | None, required=False):
+    if uploaded_file is None or not uploaded_file.filename:
+        if required:
+            raise HTTPException(422, "Resume PDF is required")
+        return None
+    filename = uploaded_file.filename.replace("\\", "/").split("/")[-1]
+    if len(filename) > 255 or not filename.lower().endswith(".pdf"):
+        raise HTTPException(422, "Document must have a PDF filename")
+    if uploaded_file.content_type != "application/pdf":
+        raise HTTPException(422, "Only PDF documents are allowed")
+    contents = await uploaded_file.read(MAX_DOCUMENT_SIZE + 1)
+    if not contents or len(contents) > MAX_DOCUMENT_SIZE:
+        raise HTTPException(422, "PDF must be nonempty and at most 5 MB")
+    if not contents.startswith(b"%PDF-"):
+        raise HTTPException(422, "Invalid PDF signature")
+    return {"filename": filename, "contents": contents, "size_bytes": len(contents)}
+
+
+def validate_profile_url(value: str):
+    value = value.strip()
+    if not value:
+        return None
+    if len(value) > 500:
+        raise HTTPException(422, "Profile URL is too long")
+    parsed = urlparse(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:
+        raise HTTPException(422, "Invalid profile URL")
+    return value
+
+
+def cleanup_application_uploads(keys):
+    for key in keys:
+        try:
+            delete_document(key)
+        except Exception:
+            logger.exception("Could not remove orphaned document %s", key)
+
+
 @router.post("/web/apply/{job_id}")
-def apply(job_id: int, request: Request, csrf: str = Form(...), db: Session = Depends(get_db)):
+async def apply(
+    job_id: int,
+    request: Request,
+    csrf: str = Form(...),
+    full_name: str = Form(...),
+    email: str = Form(...),
+    phone: str = Form(...),
+    city: str = Form(...),
+    degree: str = Form(...),
+    college: str = Form(...),
+    graduation_year: int = Form(...),
+    cgpa: Decimal | None = Form(None),
+    active_backlogs: int = Form(0),
+    tenth_percentage: Decimal | None = Form(None),
+    twelfth_percentage: Decimal | None = Form(None),
+    experience_months: int = Form(0),
+    github_url: str = Form(""),
+    linkedin_url: str = Form(""),
+    skills: str = Form(...),
+    resume: UploadFile = File(...),
+    certificate: UploadFile | None = File(None),
+    db: Session = Depends(get_db),
+):
     check_csrf(request, csrf)
     user = require_user(request, db, "candidate")
     if user is None:
         return redirect("/login")
+
     job = db.scalar(select(Job).where(Job.id == job_id, Job.status == "open"))
     if job is None:
         raise HTTPException(404, "Open job not found")
     if db.scalar(select(Application).where(Application.candidate_id == user.id, Application.job_id == job_id)):
         return redirect(notice="already_applied")
-    db.add(Application(candidate_id=user.id, job_id=job_id, status="applied"))
+
+    full_name, phone, city = full_name.strip(), phone.strip(), city.strip()
+    degree, college, skills = degree.strip(), college.strip(), skills.strip()
+    if not 2 <= len(full_name) <= 120:
+        raise HTTPException(422, "Invalid full name")
+    if email.strip().lower() != user.email.lower():
+        raise HTTPException(422, "Email does not match your account")
+    if not re.fullmatch(r"[0-9+\-()\s]{7,30}", phone):
+        raise HTTPException(422, "Invalid phone number")
+    if not 2 <= len(city) <= 120 or not 2 <= len(degree) <= 120 or not 2 <= len(college) <= 200:
+        raise HTTPException(422, "Invalid city, degree or college")
+    if not 1950 <= graduation_year <= 2100:
+        raise HTTPException(422, "Invalid graduation year")
+    if not 0 <= active_backlogs <= 100 or not 0 <= experience_months <= 720:
+        raise HTTPException(422, "Invalid backlogs or experience")
+    if not 1 <= len(skills) <= 5000:
+        raise HTTPException(422, "Skills must contain 1–5000 characters")
+    if cgpa is not None and (not cgpa.is_finite() or not 0 <= cgpa <= 10):
+        raise HTTPException(422, "CGPA must be between 0 and 10")
+    for label, value in (("10th percentage", tenth_percentage), ("12th percentage", twelfth_percentage)):
+        if value is not None and (not value.is_finite() or not 0 <= value <= 100):
+            raise HTTPException(422, f"Invalid {label}")
+    github_url = validate_profile_url(github_url)
+    linkedin_url = validate_profile_url(linkedin_url)
+
+    resume_data = await validate_application_pdf(resume, required=True)
+    certificate_data = await validate_application_pdf(certificate)
+    uploaded_keys = []
     try:
+        resume_key = upload_pdf(resume_data["contents"], "resumes")
+        uploaded_keys.append(resume_key)
+        certificate_key = None
+        if certificate_data:
+            certificate_key = upload_pdf(certificate_data["contents"], "certificates")
+            uploaded_keys.append(certificate_key)
+
+        # Database uniqueness constraint prevents concurrent duplicate applications.
+        application = Application(candidate_id=user.id, job_id=job_id, status="applied")
+        db.add(application)
+        db.flush()
+        db.add(ApplicationDetail(
+            application_id=application.id,
+            full_name=full_name, email=user.email, phone=phone, city=city,
+            degree=degree, college=college, graduation_year=graduation_year,
+            cgpa=cgpa, active_backlogs=active_backlogs,
+            tenth_percentage=tenth_percentage, twelfth_percentage=twelfth_percentage,
+            experience_months=experience_months, github_url=github_url,
+            linkedin_url=linkedin_url, skills=skills,
+        ))
+        db.add(ApplicationDocument(
+            application_id=application.id, document_type="resume",
+            storage_key=resume_key, original_filename=resume_data["filename"],
+            content_type="application/pdf", size_bytes=resume_data["size_bytes"],
+        ))
+        if certificate_data:
+            db.add(ApplicationDocument(
+                application_id=application.id, document_type="certificate",
+                storage_key=certificate_key, original_filename=certificate_data["filename"],
+                content_type="application/pdf", size_bytes=certificate_data["size_bytes"],
+            ))
         db.commit()
     except IntegrityError:
         db.rollback()
+        cleanup_application_uploads(uploaded_keys)
         return redirect(notice="already_applied")
+    except Exception:
+        db.rollback()
+        cleanup_application_uploads(uploaded_keys)
+        logger.exception("Application submission failed for job %s", job_id)
+        raise HTTPException(503, "Application submission failed. Please try again.")
     return redirect(notice="applied")
 
 

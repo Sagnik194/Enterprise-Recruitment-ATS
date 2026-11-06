@@ -189,6 +189,27 @@ class Application(Base):
         back_populates="application"
     )
 
+    # ======================================
+    # PHASE 10B: APPLICATION DETAILS
+    # ======================================
+
+    detail = relationship(
+        "ApplicationDetail",
+        back_populates="application",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+
+    # ======================================
+    # PHASE 10B: UPLOADED DOCUMENTS
+    # ======================================
+
+    documents = relationship(
+        "ApplicationDocument",
+        back_populates="application",
+        cascade="all, delete-orphan"
+    )
+
 
 # ==========================================
 # INTERVIEW MODEL — PHASE 5
@@ -253,3 +274,8 @@ class Interview(Base):
         "Application",
         back_populates="interviews"
     )
+# ==========================================
+# REGISTER PHASE 10 SQLALCHEMY MODELS
+# ==========================================
+
+import app.phase10_models  # noqa: E402, F401

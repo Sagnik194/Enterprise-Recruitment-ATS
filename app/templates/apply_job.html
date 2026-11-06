@@ -1,18 +1,11 @@
-
 {% extends "base.html" %}
 
 {% block content %}
-
 <div class="container py-4">
-
   <div class="mb-4">
-    <a href="/dashboard" class="btn btn-outline-secondary btn-sm">
-      Back to Jobs
-    </a>
+    <a href="/dashboard" class="btn btn-outline-secondary btn-sm">Back to Jobs</a>
     <h2 class="mt-3">Job Application</h2>
-    <p class="text-muted">
-      Complete your details before submitting your application.
-    </p>
+    <p class="text-muted">Complete your details before submitting your application.</p>
   </div>
 
   <div class="card mb-4">
@@ -20,148 +13,132 @@
       <h4>{{ job.title }}</h4>
       <p class="text-muted mb-1">{{ job.location }}</p>
       <p>{{ job.description }}</p>
-
       {% if requirements %}
-        <p>
-          <strong>Required skills:</strong>
-          {{ requirements.required_skills or "Not specified" }}
-        </p>
-        <p>
-          <strong>Eligible degrees:</strong>
-          {{ requirements.eligible_degrees or "Not specified" }}
-        </p>
+        <p><strong>Required skills:</strong> {{ requirements.required_skills or "Not specified" }}</p>
+        <p><strong>Eligible degrees:</strong> {{ requirements.eligible_degrees or "Not specified" }}</p>
       {% endif %}
     </div>
   </div>
 
-  <form id="application-form" class="row g-3">
+  <form id="application-form" class="row g-3" action="/web/apply/{{ job.id }}"
+        method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
 
-    <div class="col-12">
-      <h4>1. Personal Information</h4>
-    </div>
-
+    <div class="col-12"><h4>1. Personal Information</h4></div>
     <div class="col-md-6">
-      <label class="form-label">Full Name *</label>
-      <input class="form-control" name="full_name"
+      <label for="full_name" class="form-label">Full Name *</label>
+      <input id="full_name" class="form-control" name="full_name" maxlength="120"
              value="{{ user.full_name }}" required>
     </div>
-
     <div class="col-md-6">
-      <label class="form-label">Email *</label>
-      <input class="form-control" type="email" name="email"
-             value="{{ user.email }}" readonly>
+      <label for="email" class="form-label">Email *</label>
+      <input id="email" class="form-control" type="email" name="email"
+             value="{{ user.email }}" readonly required>
+    </div>
+    <div class="col-md-6">
+      <label for="phone" class="form-label">Phone Number *</label>
+      <input id="phone" class="form-control" name="phone" type="tel" maxlength="30" required>
+    </div>
+    <div class="col-md-6">
+      <label for="city" class="form-label">Current City *</label>
+      <input id="city" class="form-control" name="city" maxlength="120" required>
     </div>
 
+    <div class="col-12 mt-4"><h4>2. Educational Qualifications</h4></div>
     <div class="col-md-6">
-      <label class="form-label">Phone Number *</label>
-      <input class="form-control" name="phone"
-             maxlength="20" required>
-    </div>
-
-    <div class="col-md-6">
-      <label class="form-label">Current City *</label>
-      <input class="form-control" name="city" required>
-    </div>
-
-    <div class="col-12 mt-4">
-      <h4>2. Educational Qualifications</h4>
-    </div>
-
-    <div class="col-md-6">
-      <label class="form-label">Degree *</label>
-      <input class="form-control" name="degree"
+      <label for="degree" class="form-label">Degree *</label>
+      <input id="degree" class="form-control" name="degree" maxlength="120"
              placeholder="B.Tech Information Technology" required>
     </div>
-
     <div class="col-md-6">
-      <label class="form-label">College / University *</label>
-      <input class="form-control" name="college" required>
+      <label for="college" class="form-label">College / University *</label>
+      <input id="college" class="form-control" name="college" maxlength="200" required>
     </div>
-
     <div class="col-md-4">
-      <label class="form-label">Graduation Year *</label>
-      <input class="form-control" type="number"
-             name="graduation_year" min="1950" max="2200" required>
+      <label for="graduation_year" class="form-label">Graduation Year *</label>
+      <input id="graduation_year" class="form-control" type="number"
+             name="graduation_year" min="1950" max="2100" step="1" required>
     </div>
-
     <div class="col-md-4">
-      <label class="form-label">CGPA (out of 10)</label>
-      <input class="form-control" type="number"
-             name="cgpa" min="0" max="10" step="0.01">
+      <label for="cgpa" class="form-label">CGPA (out of 10)</label>
+      <input id="cgpa" class="form-control" type="number" name="cgpa"
+             min="0" max="10" step="0.01">
     </div>
-
     <div class="col-md-4">
-      <label class="form-label">Active Backlogs</label>
-      <input class="form-control" type="number"
-             name="active_backlogs" min="0" value="0">
+      <label for="active_backlogs" class="form-label">Active Backlogs</label>
+      <input id="active_backlogs" class="form-control" type="number"
+             name="active_backlogs" min="0" max="100" step="1" value="0" required>
     </div>
-
     <div class="col-md-6">
-      <label class="form-label">10th Percentage</label>
-      <input class="form-control" type="number"
+      <label for="tenth_percentage" class="form-label">10th Percentage</label>
+      <input id="tenth_percentage" class="form-control" type="number"
              name="tenth_percentage" min="0" max="100" step="0.01">
     </div>
-
     <div class="col-md-6">
-      <label class="form-label">12th Percentage</label>
-      <input class="form-control" type="number"
+      <label for="twelfth_percentage" class="form-label">12th Percentage</label>
+      <input id="twelfth_percentage" class="form-control" type="number"
              name="twelfth_percentage" min="0" max="100" step="0.01">
     </div>
 
-    <div class="col-12 mt-4">
-      <h4>3. Technical Information</h4>
-    </div>
-
+    <div class="col-12 mt-4"><h4>3. Technical Information</h4></div>
     <div class="col-md-6">
-      <label class="form-label">Experience (months) *</label>
-      <input class="form-control" type="number"
-             name="experience_months" min="0" value="0" required>
+      <label for="experience_months" class="form-label">Experience (months) *</label>
+      <input id="experience_months" class="form-control" type="number"
+             name="experience_months" min="0" max="720" step="1" value="0" required>
     </div>
-
     <div class="col-md-6">
-      <label class="form-label">GitHub URL</label>
-      <input class="form-control" type="url" name="github_url">
+      <label for="github_url" class="form-label">GitHub URL</label>
+      <input id="github_url" class="form-control" type="url" name="github_url" maxlength="500">
     </div>
-
     <div class="col-md-6">
-      <label class="form-label">LinkedIn URL</label>
-      <input class="form-control" type="url" name="linkedin_url">
+      <label for="linkedin_url" class="form-label">LinkedIn URL</label>
+      <input id="linkedin_url" class="form-control" type="url" name="linkedin_url" maxlength="500">
     </div>
-
     <div class="col-12">
-      <label class="form-label">Technical Skills *</label>
-      <textarea class="form-control" name="skills"
-                rows="3" required
-                placeholder="Python, FastAPI, SQL, Git"></textarea>
+      <label for="skills" class="form-label">Technical Skills *</label>
+      <textarea id="skills" class="form-control" name="skills" rows="3"
+                maxlength="5000" required placeholder="Python, FastAPI, SQL, Git"></textarea>
+    </div>
+
+    <div class="col-12 mt-4"><h4>4. Document Upload</h4></div>
+    <div class="col-md-6">
+      <label for="resume" class="form-label">Resume (PDF) *</label>
+      <input id="resume" class="form-control" type="file" name="resume"
+             accept=".pdf,application/pdf" required>
+      <div class="form-text">Maximum 5 MB. PDF only.</div>
+    </div>
+    <div class="col-md-6">
+      <label for="certificate" class="form-label">Supporting Document (Optional)</label>
+      <input id="certificate" class="form-control" type="file" name="certificate"
+             accept=".pdf,application/pdf">
+      <div class="form-text">Maximum 5 MB. PDF only.</div>
     </div>
 
     <div class="col-12 mt-4">
-      <h4>4. Document Upload</h4>
-    </div>
-
-    <div class="col-md-6">
-      <label class="form-label">Resume (PDF) *</label>
-      <input class="form-control" type="file"
-             name="resume" accept=".pdf,application/pdf" required>
-    </div>
-
-    <div class="col-md-6">
-      <label class="form-label">Supporting Document (Optional)</label>
-      <input class="form-control" type="file"
-             name="certificate" accept=".pdf,application/pdf">
-    </div>
-
-    <div class="col-12 mt-4">
-      <div class="alert alert-info">
-        Application submission will be enabled after we implement
-        secure document storage and database persistence.
-      </div>
-      <button class="btn btn-primary" type="button" disabled>
-        Submit Application — Coming Next
+      <button id="submit-application" class="btn btn-primary" type="submit">
+        Submit Application
       </button>
     </div>
-
   </form>
 </div>
 
+<script>
+(function () {
+  const form = document.getElementById('application-form');
+  const button = document.getElementById('submit-application');
+  form.addEventListener('submit', function (event) {
+    const maxSize = 5 * 1024 * 1024;
+    for (const name of ['resume', 'certificate']) {
+      const input = form.elements[name];
+      if (input.files.length && input.files[0].size > maxSize) {
+        event.preventDefault();
+        alert(name + ' must be 5 MB or smaller.');
+        return;
+      }
+    }
+    button.disabled = true;
+    button.textContent = 'Submitting...';
+  });
+})();
+</script>
 {% endblock %}
