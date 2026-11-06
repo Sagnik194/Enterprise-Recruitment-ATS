@@ -398,13 +398,25 @@ async def apply(
             ))
         db.commit()
     except IntegrityError:
+        # A concurrent submission may violate the unique candidate/job constraint.
+        # Other integrity errors must not be reported as duplicate applications.
         db.rollback()
+        logger.exception("Database integrity error while submitting application for job_id=%s", job_id)
         cleanup_application_uploads(uploaded_keys)
-        return redirect(notice="already_applied")
+        existing = db.scalar(
+            select(Application).where(
+                Application.candidate_id == user.id,
+                Application.job_id == job_id,
+            )
+        )
+        if existing is not None:
+            return redirect(notice="already_applied")
+        raise HTTPException(503, "Application submission failed. Please try again.")
     except Exception:
         db.rollback()
+        # Log the original exception before cleanup, which may also fail.
+        logger.exception("Application submission failed for job_id=%s", job_id)
         cleanup_application_uploads(uploaded_keys)
-        logger.exception("Application submission failed for job %s", job_id)
         raise HTTPException(503, "Application submission failed. Please try again.")
     return redirect(notice="applied")
 
