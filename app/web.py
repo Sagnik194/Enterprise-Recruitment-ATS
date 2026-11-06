@@ -18,7 +18,7 @@ from app.database import get_db
 from app.models import Application, Interview, Job, User
 from app.phase7_models import JobRequirement
 from app.phase10_models import ApplicationDetail, ApplicationDocument
-from app.supabase_storage import upload_pdf, delete_document
+from app.supabase_storage import upload_pdf, delete_document, get_signed_document_url
 from app.security import verify_password
 
 router = APIRouter(tags=["Web Dashboard"])
@@ -419,6 +419,85 @@ async def apply(
         cleanup_application_uploads(uploaded_keys)
         raise HTTPException(503, "Application submission failed. Please try again.")
     return redirect(notice="applied")
+
+
+
+
+# Phase 10D: Recruiter-only candidate review and private document access.
+@router.get("/web/recruiter/applications/{application_id}")
+def recruiter_application_review(
+    application_id: int, request: Request, db: Session = Depends(get_db)
+):
+    recruiter = require_user(request, db, "recruiter")
+    if recruiter is None:
+        return redirect("/login")
+    application = owned_application(db, application_id, recruiter.id, lock=False)
+    job = db.get(Job, application.job_id)
+    candidate = db.get(User, application.candidate_id)
+    detail = db.scalar(select(ApplicationDetail).where(ApplicationDetail.application_id == application.id))
+    documents = db.scalars(
+        select(ApplicationDocument).where(ApplicationDocument.application_id == application.id)
+        .order_by(ApplicationDocument.id)
+    ).all()
+    return render(
+        request, "application_review.html", user=recruiter, application=application,
+        job=job, candidate=candidate, detail=detail, documents=documents,
+    )
+
+
+@router.get("/web/recruiter/applications/{application_id}/documents/{document_id}")
+def recruiter_application_document(
+    application_id: int, document_id: int, request: Request,
+    db: Session = Depends(get_db),
+):
+    recruiter = require_user(request, db, "recruiter")
+    if recruiter is None:
+        return redirect("/login")
+    application = owned_application(db, application_id, recruiter.id, lock=False)
+    document = db.scalar(select(ApplicationDocument).where(
+        ApplicationDocument.id == document_id,
+        ApplicationDocument.application_id == application.id,
+    ))
+    if document is None:
+        raise HTTPException(404, "Document not found")
+    try:
+        signed_url = get_signed_document_url(document.storage_key)
+    except Exception:
+        logger.exception("Unable to generate signed document URL for document_id=%s", document_id)
+        raise HTTPException(503, "Document temporarily unavailable")
+    if not signed_url or not isinstance(signed_url, str):
+        logger.error("Storage returned an invalid signed URL for document_id=%s", document_id)
+        raise HTTPException(503, "Document temporarily unavailable")
+    response = RedirectResponse(signed_url, status_code=302)
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
+
+
+@router.post("/web/recruiter/applications/{application_id}/evaluation")
+def save_recruiter_evaluation(
+    application_id: int, request: Request,
+    csrf: str = Form(...),
+    recruiter_notes: str = Form(""),
+    evaluation_rating: int | None = Form(None),
+    db: Session = Depends(get_db),
+):
+    check_csrf(request, csrf)
+    recruiter = require_user(request, db, "recruiter")
+    if recruiter is None:
+        return redirect("/login")
+    application = owned_application(db, application_id, recruiter.id)
+    if len(recruiter_notes) > 5000:
+        raise HTTPException(422, "Recruiter notes must be at most 5000 characters")
+    if evaluation_rating is not None and not 1 <= evaluation_rating <= 5:
+        raise HTTPException(422, "Rating must be between 1 and 5")
+    detail = db.scalar(select(ApplicationDetail).where(ApplicationDetail.application_id == application.id))
+    if detail is None:
+        raise HTTPException(409, "This application has no Phase 10 candidate profile")
+    detail.recruiter_notes = recruiter_notes.strip() or None
+    detail.evaluation_rating = evaluation_rating
+    db.commit()
+    return redirect(f"/web/recruiter/applications/{application.id}", notice="evaluation_saved")
 
 
 @router.post("/web/jobs")
