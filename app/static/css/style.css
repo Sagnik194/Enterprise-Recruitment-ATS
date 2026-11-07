@@ -914,3 +914,19 @@ details summary::-webkit-details-marker {
         min-height: 0;
     }
 }
+/* Sagniq dashboard enhancements: append to style.css */
+.sagniq-page-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px;margin-bottom:26px;padding:8px 0 14px}
+.sagniq-page-header h2{margin:7px 0 6px}.sagniq-page-header p{margin:0;font-size:.9rem}
+.sagniq-kicker{display:block;color:#6366f1;font-size:.69rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+.sagniq-header-icon{display:grid;place-items:center;width:55px;height:55px;border-radius:17px;background:linear-gradient(135deg,#6366f1,#14b8a6);color:white;font-size:1.7rem;box-shadow:0 12px 25px #6366f130}
+.sagniq-metric{height:100%;min-height:144px;border-top:3px solid #818cf8}
+.sagniq-metric-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sagniq-metric-symbol{display:grid;place-items:center;width:36px;height:36px;border-radius:11px;background:#eef2ff;color:#6366f1;font-size:1.25rem}
+.sagniq-metric h2{margin-top:7px}.sagniq-metric-caption{display:block;color:#94a3b8;font-size:.74rem;margin-top:5px}
+.sagniq-feature-card{background:linear-gradient(105deg,#fff 0%,#fff 72%,#f2f0ff 100%);border:1px solid #e0e4f5!important}
+.sagniq-feature-icon{display:grid;place-items:center;flex:0 0 56px;height:56px;border-radius:16px;background:#ede9fe;color:#5b21b6;font-size:1.7rem}
+.sagniq-section-heading{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+.sagniq-section-heading h4{margin:6px 0 0}.sagniq-section-title{margin:25px 0 14px}
+.sagniq-count{display:inline-block;background:#eef2ff;color:#4338ca;border-radius:20px;padding:5px 11px;font-size:.73rem;font-weight:700}
+.sagniq-role{display:inline-block;padding:5px 9px;background:#f1f5f9;border-radius:8px;font-size:.77rem;font-weight:650;color:#334155}
+@media(max-width:575.98px){.sagniq-header-icon{display:none}.sagniq-page-header{margin-bottom:17px}.sagniq-metric{min-height:116px}.sagniq-feature-card .card-body{padding:19px}}
