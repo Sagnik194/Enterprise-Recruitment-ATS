@@ -1,14 +1,159 @@
+
 {% extends 'base.html' %}
+
+{% block title %}Sign In | Sagniq{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center mt-5"><div class="col-md-5"><div class="card shadow-sm"><div class="card-body p-4">
-<h2>Welcome back</h2><p class="text-muted">Sign in to Enterprise ATS</p>
-{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
-{% if request.query_params.get('notice') == 'registration_pending' %}<div class="alert alert-info">Recruiter account created. Wait for administrator approval before signing in.</div>{% endif %}
-{% if request.query_params.get('notice') == 'registration_success' %}<div class="alert alert-success">Account created. You can sign in now.</div>{% endif %}
-<form action="/login" method="post"><input type="hidden" name="csrf" value="{{ csrf }}">
-<label class="form-label">Email</label><input class="form-control mb-3" type="email" name="email" autocomplete="username" required>
-<label class="form-label">Password</label><input class="form-control mb-3" type="password" name="password" autocomplete="current-password" required>
-<button class="btn btn-primary w-100">Sign in</button></form><hr>
-<p class="text-center mb-0">Don't have an account? <a href="/register">Create Account</a></p>
-</div></div></div></div>
+
+<section class="auth-shell">
+
+    <!-- Left Branding Panel -->
+    <div class="auth-brand-panel">
+        <div class="auth-orb auth-orb-one"></div>
+        <div class="auth-orb auth-orb-two"></div>
+        <div class="auth-orb auth-orb-three"></div>
+
+        <div class="auth-brand-content">
+
+            <span class="auth-eyebrow">
+                SAGNIQ RECRUITMENT PLATFORM
+            </span>
+
+            <h1>
+                Hire smarter.<br>
+                Build stronger<br>
+                <span>teams.</span>
+            </h1>
+
+            <p class="auth-brand-description">
+                A modern recruitment platform that connects
+                talented professionals with meaningful opportunities.
+                Manage hiring, applications, and interviews in one place.
+            </p>
+
+            <div class="auth-feature-list">
+                <div class="auth-feature">
+                    <span class="auth-feature-icon">✓</span>
+                    <span>Discover the right opportunities</span>
+                </div>
+
+                <div class="auth-feature">
+                    <span class="auth-feature-icon">✓</span>
+                    <span>Track applications from start to finish</span>
+                </div>
+
+                <div class="auth-feature">
+                    <span class="auth-feature-icon">✓</span>
+                    <span>Streamline interviews and hiring</span>
+                </div>
+            </div>
+
+            <div class="auth-brand-bottom">
+                <span class="auth-brand-line"></span>
+                <span>Intelligent Hiring, Simplified.</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Right Login Form -->
+    <div class="auth-form-panel">
+        <div class="auth-form-inner">
+
+            <div class="auth-form-heading">
+                <span class="auth-form-eyebrow">
+                    WELCOME BACK
+                </span>
+
+                <h2>Sign in to Sagniq</h2>
+
+                <p class="text-muted">
+                    Enter your credentials to access your account.
+                </p>
+            </div>
+
+            {% if error %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            {% if request.query_params.get('notice') == 'registration_pending' %}
+            <div class="alert alert-info" role="status">
+                Recruiter account created successfully.
+                Please wait for administrator approval before signing in.
+            </div>
+            {% endif %}
+
+            {% if request.query_params.get('notice') == 'registration_success' %}
+            <div class="alert alert-success" role="status">
+                Your account has been created successfully.
+                You can sign in now.
+            </div>
+            {% endif %}
+
+            <form action="/login" method="post">
+
+                <input type="hidden"
+                       name="csrf"
+                       value="{{ csrf }}">
+
+                <div class="mb-4">
+                    <label for="login-email" class="form-label">
+                        Email address
+                    </label>
+
+                    <input
+                        id="login-email"
+                        class="form-control auth-input"
+                        type="email"
+                        name="email"
+                        placeholder="Enter your email address"
+                        autocomplete="username"
+                        maxlength="255"
+                        required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="login-password" class="form-label">
+                        Password
+                    </label>
+
+                    <input
+                        id="login-password"
+                        class="form-control auth-input"
+                        type="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required>
+                </div>
+
+                <button
+                    type="submit"
+                    class="btn btn-sagniq-primary auth-submit w-100">
+                    Sign In
+                    <span aria-hidden="true">→</span>
+                </button>
+
+            </form>
+
+            <div class="auth-divider">
+                <span>NEW TO SAGNIQ?</span>
+            </div>
+
+            <p class="auth-switch text-center">
+                Don't have an account?
+                <a href="/register">Create Account</a>
+            </p>
+
+            <p class="auth-security-note">
+                Secure access for candidates, recruiters, and administrators.
+            </p>
+
+        </div>
+    </div>
+
+</section>
+
 {% endblock %}

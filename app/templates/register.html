@@ -1,17 +1,209 @@
+
 {% extends 'base.html' %}
+
+{% block title %}Create Account | Sagniq{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center mt-4"><div class="col-md-6"><div class="card shadow-sm"><div class="card-body p-4">
-<h2>Create your account</h2><p class="text-muted">Join Enterprise Recruitment ATS</p>
-{% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
-<form action="/register" method="post"><input type="hidden" name="csrf" value="{{ csrf }}">
-<label class="form-label" for="full_name">Full name</label><input id="full_name" class="form-control mb-3" name="full_name" minlength="2" maxlength="120" value="{{ values.get('full_name','') }}" required>
-<label class="form-label" for="email">Email address</label><input id="email" type="email" class="form-control mb-3" name="email" maxlength="255" value="{{ values.get('email','') }}" autocomplete="email" required>
-<label class="form-label" for="role">Register as</label><select id="role" class="form-select mb-3" name="role" required>
-<option value="candidate" {% if values.get('role','candidate') == 'candidate' %}selected{% endif %}>Candidate</option>
-<option value="recruiter" {% if values.get('role') == 'recruiter' %}selected{% endif %}>Recruiter (admin approval required)</option></select>
-<label class="form-label" for="password">Password</label><input id="password" type="password" class="form-control mb-3" name="password" minlength="12" maxlength="128" autocomplete="new-password" required>
-<label class="form-label" for="confirm_password">Confirm password</label><input id="confirm_password" type="password" class="form-control mb-3" name="confirm_password" minlength="12" maxlength="128" autocomplete="new-password" required>
-<p class="text-muted small">Use at least 12 characters. Recruiter accounts require approval before access.</p>
-<button class="btn btn-primary w-100">Create Account</button></form><p class="text-center mt-3 mb-0">Already registered? <a href="/login">Sign in</a></p>
-</div></div></div></div>
+
+<section class="auth-shell auth-register-shell">
+
+    <!-- Left Branding Panel -->
+    <div class="auth-brand-panel">
+
+        <div class="auth-orb auth-orb-one"></div>
+        <div class="auth-orb auth-orb-two"></div>
+        <div class="auth-orb auth-orb-three"></div>
+
+        <div class="auth-brand-content">
+
+            <span class="auth-eyebrow">
+                START YOUR JOURNEY
+            </span>
+
+            <h1>
+                Your next<br>
+                opportunity<br>
+                <span>starts here.</span>
+            </h1>
+
+            <p class="auth-brand-description">
+                Join Sagniq and become part of a smarter recruitment
+                experience, built for candidates and hiring teams.
+            </p>
+
+            <div class="auth-feature-list">
+                <div class="auth-feature">
+                    <span class="auth-feature-icon">✓</span>
+                    <span>Create your professional account</span>
+                </div>
+
+                <div class="auth-feature">
+                    <span class="auth-feature-icon">✓</span>
+                    <span>Apply for opportunities or recruit talent</span>
+                </div>
+
+                <div class="auth-feature">
+                    <span class="auth-feature-icon">✓</span>
+                    <span>Manage your recruitment journey</span>
+                </div>
+            </div>
+
+            <div class="auth-brand-bottom">
+                <span class="auth-brand-line"></span>
+                <span>Intelligent Hiring, Simplified.</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Right Registration Form -->
+    <div class="auth-form-panel">
+        <div class="auth-form-inner">
+
+            <div class="auth-form-heading">
+                <span class="auth-form-eyebrow">
+                    JOIN SAGNIQ
+                </span>
+
+                <h2>Create your account</h2>
+
+                <p class="text-muted">
+                    Get started with your recruitment journey.
+                </p>
+            </div>
+
+            {% if error %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form action="/register" method="post">
+
+                <input type="hidden"
+                       name="csrf"
+                       value="{{ csrf }}">
+
+                <div class="mb-3">
+                    <label class="form-label" for="full_name">
+                        Full name
+                    </label>
+
+                    <input
+                        id="full_name"
+                        class="form-control auth-input"
+                        name="full_name"
+                        minlength="2"
+                        maxlength="120"
+                        value="{{ values.get('full_name', '') }}"
+                        placeholder="Enter your full name"
+                        autocomplete="name"
+                        required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="email">
+                        Email address
+                    </label>
+
+                    <input
+                        id="email"
+                        type="email"
+                        class="form-control auth-input"
+                        name="email"
+                        maxlength="255"
+                        value="{{ values.get('email', '') }}"
+                        placeholder="Enter your email address"
+                        autocomplete="email"
+                        required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="role">
+                        Register as
+                    </label>
+
+                    <select
+                        id="role"
+                        class="form-select auth-input"
+                        name="role"
+                        required>
+
+                        <option
+                            value="candidate"
+                            {% if values.get('role', 'candidate') == 'candidate' %}selected{% endif %}>
+                            Candidate
+                        </option>
+
+                        <option
+                            value="recruiter"
+                            {% if values.get('role') == 'recruiter' %}selected{% endif %}>
+                            Recruiter (admin approval required)
+                        </option>
+
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="password">
+                        Password
+                    </label>
+
+                    <input
+                        id="password"
+                        type="password"
+                        class="form-control auth-input"
+                        name="password"
+                        minlength="12"
+                        maxlength="128"
+                        placeholder="Create a strong password"
+                        autocomplete="new-password"
+                        required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="confirm_password">
+                        Confirm password
+                    </label>
+
+                    <input
+                        id="confirm_password"
+                        type="password"
+                        class="form-control auth-input"
+                        name="confirm_password"
+                        minlength="12"
+                        maxlength="128"
+                        placeholder="Re-enter your password"
+                        autocomplete="new-password"
+                        required>
+                </div>
+
+                <div class="auth-info-box mb-4">
+                    <strong>Account requirements</strong>
+                    <p class="mb-0">
+                        Passwords must contain at least 12 characters.
+                        Recruiter accounts require administrator approval
+                        before they can sign in.
+                    </p>
+                </div>
+
+                <button
+                    type="submit"
+                    class="btn btn-sagniq-primary auth-submit w-100">
+                    Create Account
+                    <span aria-hidden="true">→</span>
+                </button>
+
+            </form>
+
+            <p class="auth-switch text-center mt-4">
+                Already registered?
+                <a href="/login">Sign In</a>
+            </p>
+
+        </div>
+    </div>
+
+</section>
+
 {% endblock %}
