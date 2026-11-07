@@ -1,10 +1,171 @@
+
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Enterprise ATS</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}"></head>
-<body><nav class="navbar navbar-dark bg-dark px-3"><a class="navbar-brand fw-bold" href="/dashboard">Enterprise ATS</a>
-{% if user is defined %}<div class="d-flex align-items-center gap-3"><span class="text-white small">{{ user.full_name }} · {{ user.role|title }}</span>
-<form action="/logout" method="post"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn btn-outline-light btn-sm">Logout</button></form></div>{% endif %}</nav>
-<main class="container py-4">{% set notices = {'applied':'Application submitted','already_applied':'You have already applied','job_created':'Job published','job_updated':'Job status updated','updated':'Application updated','interview_scheduled':'Interview scheduled','interview_rescheduled':'Interview rescheduled','interview_cancelled':'Interview cancelled','interview_completed':'Interview result recorded'} %}
-{% set notice = request.query_params.get('notice') %}{% if notice in notices %}<div class="alert alert-info">{{ notices[notice] }}</div>{% endif %}
-{% block content %}{% endblock %}</main><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script src="{{ url_for('static', path='/js/app.js') }}"></script></body></html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <meta name="theme-color" content="#0B1F3B">
+
+    <title>{% block title %}Sagniq | Recruitment Platform{% endblock %}</title>
+
+    <link rel="icon"
+          type="image/svg+xml"
+          href="{{ url_for('static', path='/images/sagniq-mark.svg') }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', path='/css/style.css') }}">
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-md navbar-dark sagniq-navbar">
+        <div class="container-fluid px-3 px-lg-5">
+
+            <a class="navbar-brand sagniq-brand"
+               href="/dashboard"
+               aria-label="Sagniq dashboard">
+
+                <img src="{{ url_for('static', path='/images/sagniq-mark.svg') }}"
+                     alt=""
+                     width="40"
+                     height="40">
+
+                <span>Sagniq<span class="brand-dot">.</span></span>
+
+                <span class="brand-tag">ATS</span>
+            </a>
+
+            {% if user is defined %}
+
+            <button class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#sagniqNavigation"
+                    aria-controls="sagniqNavigation"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse"
+                 id="sagniqNavigation">
+
+                <div class="navbar-nav ms-md-4 me-auto">
+                    <a class="nav-link"
+                       href="/dashboard">
+                        Dashboard
+                    </a>
+
+                    {% if user.role == "admin" %}
+                    <a class="nav-link"
+                       href="/admin/recruiters">
+                        Recruiter Approvals
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex align-items-center flex-wrap gap-3 py-2 py-md-0">
+
+                    <div class="sagniq-user">
+                        <span class="user-avatar">
+                            {{ user.full_name[:1]|upper }}
+                        </span>
+
+                        <span class="user-details">
+                            <strong>{{ user.full_name }}</strong>
+                            <small>{{ user.role|title }}</small>
+                        </span>
+                    </div>
+
+                    <form action="/logout"
+                          method="post"
+                          class="m-0">
+
+                        <input type="hidden"
+                               name="csrf"
+                               value="{{ csrf }}">
+
+                        <button type="submit"
+                                class="btn btn-sagniq-logout btn-sm">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {% else %}
+
+            <div class="d-flex gap-2">
+                <a href="/login"
+                   class="btn btn-sagniq-logout btn-sm">
+                    Sign In
+                </a>
+
+                <a href="/register"
+                   class="btn btn-sagniq-primary btn-sm">
+                    Get Started
+                </a>
+            </div>
+
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="container sagniq-main py-4 py-lg-5">
+
+        {% set notices = {
+            'applied': 'Application submitted successfully',
+            'already_applied': 'You have already applied for this job',
+            'job_created': 'Job published successfully',
+            'job_updated': 'Job status updated successfully',
+            'updated': 'Application updated successfully',
+            'interview_scheduled': 'Interview scheduled successfully',
+            'interview_rescheduled': 'Interview rescheduled successfully',
+            'interview_cancelled': 'Interview cancelled successfully',
+            'interview_completed': 'Interview result recorded',
+            'registration_success': 'Registration successful. Please sign in.',
+            'registration_pending': 'Registration submitted. Your recruiter account is awaiting administrator approval.',
+            'recruiter_approved': 'Recruiter approved successfully',
+            'recruiter_rejected': 'Recruiter registration rejected',
+            'evaluation_saved': 'Candidate evaluation saved successfully'
+        } %}
+
+        {% set notice = request.query_params.get('notice') %}
+
+        {% if notice in notices %}
+        <div class="alert alert-info sagniq-notice"
+             role="status">
+            {{ notices[notice] }}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+
+    </main>
+
+    <footer class="sagniq-footer">
+        <div class="container d-flex justify-content-between flex-wrap gap-2">
+            <span>© Sagniq · Intelligent Hiring, Simplified.</span>
+            <span>Recruitment & Applicant Tracking System</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="{{ url_for('static', path='/js/app.js') }}"></script>
+
+</body>
+</html>

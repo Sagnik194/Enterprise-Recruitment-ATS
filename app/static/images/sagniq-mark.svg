@@ -1,0 +1,33 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">Sagniq logo</title>
+
+  <defs>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6366F1"></stop>
+      <stop offset="100%" stop-color="#A855F7"></stop>
+    </linearGradient>
+
+    <linearGradient id="bottom" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#14B8A6"></stop>
+      <stop offset="100%" stop-color="#0891B2"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Upper ribbon -->
+  <path d="M107 18
+           C82 8 47 13 31 31
+           C18 46 24 59 45 65
+           C57 68 72 67 81 74
+           C87 79 84 86 78 91" fill="none" stroke="url(#top)" stroke-width="19" stroke-linecap="round" stroke-linejoin="round"></path>
+
+  <!-- Lower ribbon -->
+  <path d="M21 110
+           C45 115 79 110 96 92
+           C110 77 103 63 82 57
+           C70 53 56 55 47 48" fill="none" stroke="url(#bottom)" stroke-width="19" stroke-linecap="round" stroke-linejoin="round"></path>
+
+  <!-- Talent / human figure -->
+  <circle cx="64" cy="76" r="5.5" fill="#FFFFFF"></circle>
+  <path d="M53 92 L64 83 L75 92" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
