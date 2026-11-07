@@ -1,353 +1,416 @@
 
 {% extends 'base.html' %}
 
+{% block title %}Candidate Dashboard | Sagniq{% endblock %}
+
 {% block content %}
 
-<h2>Candidate Dashboard</h2>
+<!-- WELCOME HEADER -->
+<section class="candidate-hero mb-4">
+    <div class="candidate-hero-content">
+        <span class="candidate-hero-label">CANDIDATE WORKSPACE</span>
+        <h2 class="mt-3 mb-2">
+            Welcome back, {{ user.full_name }}.
+        </h2>
+        <p class="mb-0">
+            Discover your next opportunity, manage applications,
+            and stay ahead in your hiring journey.
+        </p>
+    </div>
 
-<p class="text-muted">
-    Welcome, {{ user.full_name }}.
-    Discover opportunities and track your progress.
-</p>
+    <div class="candidate-hero-art" aria-hidden="true">
+        <div class="candidate-hero-ring"></div>
+        <div class="candidate-hero-symbol">S</div>
+    </div>
+</section>
 
-<!-- Dashboard Statistics -->
+<!-- DASHBOARD STATISTICS -->
 <div class="row g-3 mb-4">
+
     <div class="col-md-4">
-        <div class="stat-card">
-            <small>Matching Jobs</small>
+        <div class="candidate-stat-card">
+            <div class="candidate-stat-top">
+                <span>Matching Jobs</span>
+                <span class="candidate-stat-icon candidate-icon-violet">⌕</span>
+            </div>
             <h2>{{ total_jobs }}</h2>
+            <p>Opportunities matching your filters</p>
         </div>
     </div>
 
     <div class="col-md-4">
-        <div class="stat-card">
-            <small>Applications</small>
+        <div class="candidate-stat-card">
+            <div class="candidate-stat-top">
+                <span>My Applications</span>
+                <span class="candidate-stat-icon candidate-icon-teal">▤</span>
+            </div>
             <h2>{{ applications|length }}</h2>
+            <p>Applications submitted so far</p>
         </div>
     </div>
 
     <div class="col-md-4">
-        <div class="stat-card">
-            <small>Interviews</small>
+        <div class="candidate-stat-card">
+            <div class="candidate-stat-top">
+                <span>Interviews</span>
+                <span class="candidate-stat-icon candidate-icon-blue">◷</span>
+            </div>
             <h2>{{ interviews|length }}</h2>
+            <p>Interview records in your account</p>
         </div>
     </div>
+
 </div>
 
-<!-- Search Jobs -->
-<section class="card mb-4">
+<!-- SEARCH AND FILTER -->
+<section class="card candidate-filter-card mb-4">
     <div class="card-body">
-        <h4>Search Jobs</h4>
+        <div class="candidate-section-heading">
+            <div>
+                <span class="candidate-section-label">EXPLORE OPPORTUNITIES</span>
+                <h4 class="mt-2 mb-1">Find your next role</h4>
+                <p class="text-muted small mb-0">
+                    Search available jobs by keyword, location and salary.
+                </p>
+            </div>
+        </div>
 
         <form method="get"
               action="/dashboard"
               class="row g-3"
               id="job-search-form">
 
-            <div class="col-md-4">
+            <div class="col-lg-4 col-md-6">
                 <label class="form-label" for="job-keyword">
-                    Keyword
+                    Job Keyword
                 </label>
-
-                <input
-                    id="job-keyword"
-                    class="form-control"
-                    type="search"
-                    name="q"
-                    value="{{ q or '' }}"
-                    maxlength="150"
-                    placeholder="Python, SQL, Backend">
+                <input id="job-keyword"
+                       class="form-control"
+                       type="search"
+                       name="q"
+                       value="{{ q or '' }}"
+                       maxlength="150"
+                       placeholder="Python, SQL, Backend">
             </div>
 
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6">
                 <label class="form-label" for="job-location">
                     Location
                 </label>
-
-                <input
-                    id="job-location"
-                    class="form-control"
-                    type="search"
-                    name="location"
-                    value="{{ location or '' }}"
-                    maxlength="120"
-                    placeholder="Kolkata">
+                <input id="job-location"
+                       class="form-control"
+                       type="search"
+                       name="location"
+                       value="{{ location or '' }}"
+                       maxlength="120"
+                       placeholder="Kolkata">
             </div>
 
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6">
                 <label class="form-label" for="min-salary">
                     Minimum Salary (₹/year)
                 </label>
-
-                <input
-                    id="min-salary"
-                    class="form-control"
-                    type="number"
-                    min="0"
-                    max="1000000000000"
-                    step="1"
-                    name="min_salary"
-                    value="{{ min_salary if min_salary is not none else '' }}"
-                    placeholder="Optional">
+                <input id="min-salary"
+                       class="form-control"
+                       type="number"
+                       min="0"
+                       max="1000000000000"
+                       step="1"
+                       name="min_salary"
+                       value="{{ min_salary if min_salary is not none else '' }}"
+                       placeholder="Optional">
             </div>
 
-            <div class="col-md-2">
+            <div class="col-lg-2 col-md-6">
                 <label class="form-label" for="page-size">
-                    Page Size
+                    Results Per Page
                 </label>
-
-                <select
-                    id="page-size"
-                    name="page_size"
-                    class="form-select">
-
+                <select id="page-size"
+                        name="page_size"
+                        class="form-select">
                     {% for n in [6, 12, 24, 50] %}
-                    <option
-                        value="{{ n }}"
-                        {% if page_size == n %}selected{% endif %}>
+                    <option value="{{ n }}"
+                            {% if page_size == n %}selected{% endif %}>
                         {{ n }}
                     </option>
                     {% endfor %}
-
                 </select>
             </div>
 
-            <div class="col-12">
-                <button type="submit" class="btn btn-primary">
-                    Search
+            <div class="col-12 d-flex flex-wrap gap-2 mt-4">
+                <button type="submit" class="btn btn-sagniq-primary">
+                    Search Opportunities
                 </button>
-
-                <a href="/dashboard"
-                   class="btn btn-outline-secondary">
-                    Clear
+                <a href="/dashboard" class="btn btn-outline-secondary">
+                    Reset Filters
                 </a>
             </div>
         </form>
     </div>
 </section>
 
-<!-- Available Jobs -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">Available Jobs</h4>
-    <span class="text-muted">
-        {{ total_jobs }} matching job(s)
-    </span>
-</div>
+<!-- AVAILABLE JOBS -->
+<section class="mb-4">
+    <div class="candidate-section-heading mb-3">
+        <div>
+            <span class="candidate-section-label">JOB DISCOVERY</span>
+            <h4 class="mt-2 mb-1">Available Opportunities</h4>
+            <p class="text-muted small mb-0">
+                Explore roles that fit your career goals.
+            </p>
+        </div>
 
-<div class="row g-3 mb-3">
+        <span class="candidate-result-count">
+            {{ total_jobs }} matching job(s)
+        </span>
+    </div>
 
-    {% for job in jobs %}
+    <div class="row g-3">
+        {% for job in jobs %}
+        <div class="col-lg-6">
+            <article class="card candidate-job-card h-100">
+                <div class="card-body">
+                    <div class="candidate-job-header">
+                        <div class="candidate-job-icon" aria-hidden="true">
+                            S
+                        </div>
+                        <span class="candidate-job-label">
+                            OPPORTUNITY
+                        </span>
+                    </div>
 
-    <div class="col-md-6">
-        <div class="card h-100">
-            <div class="card-body">
+                    <h5 class="candidate-job-title">
+                        {{ job.title }}
+                    </h5>
 
-                <h5>{{ job.title }}</h5>
+                    <div class="candidate-job-location">
+                        <span aria-hidden="true">⌖</span>
+                        {{ job.location }}
+                    </div>
 
-                <p class="text-muted">
-                    {{ job.location }}
-                </p>
+                    <p class="candidate-job-description">
+                        {{ job.description[:200] }}
+                        {% if job.description|length > 200 %}…{% endif %}
+                    </p>
 
+                    <div class="candidate-job-salary">
+                        <span class="candidate-salary-label">
+                            ANNUAL SALARY
+                        </span>
+                        <strong>
+                            {% if job.salary_min is not none %}
+                                ₹{{ "{:,.0f}".format(job.salary_min) }}
+                            {% else %}
+                                Not disclosed
+                            {% endif %}
+
+                            {% if job.salary_max is not none %}
+                                – ₹{{ "{:,.0f}".format(job.salary_max) }}
+                            {% endif %}
+                        </strong>
+                    </div>
+
+                    <div class="candidate-job-footer">
+                        {% if job.id in applied_job_ids %}
+                            <span class="candidate-applied-badge">
+                                ✓ Already Applied
+                            </span>
+                        {% else %}
+                            <a href="/web/apply/{{ job.id }}"
+                               class="btn btn-sagniq-primary">
+                                Apply Now →
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="candidate-empty-state">
+                <div class="candidate-empty-icon">⌕</div>
+                <h5>No matching opportunities</h5>
                 <p>
-                    {{ job.description[:200] }}
-                    {% if job.description|length > 200 %}
-                        …
-                    {% endif %}
+                    Try adjusting your keyword, location, or salary filters.
                 </p>
-
-                <p class="small">
-                    Salary:
-
-                    {% if job.salary_min is not none %}
-                        ₹{{ job.salary_min }}
-                    {% else %}
-                        Not disclosed
-                    {% endif %}
-
-                    {% if job.salary_max is not none %}
-                        – ₹{{ job.salary_max }}
-                    {% endif %}
-                </p>
-
-                {% if job.id in applied_job_ids %}
-
-                    <span class="badge bg-success">
-                        Already Applied
-                    </span>
-
-                {% else %}
-
-                    <a href="/web/apply/{{ job.id }}"
-                       class="btn btn-primary">
-                        Apply Now
-                    </a>
-
-                {% endif %}
-
+                <a href="/dashboard" class="btn btn-outline-primary">
+                    View All Jobs
+                </a>
             </div>
         </div>
+        {% endfor %}
     </div>
+</section>
 
-    {% else %}
-
-    <div class="col-12">
-        <div class="alert alert-info">
-            No jobs match your search filters.
-            Try another keyword or location.
-        </div>
-    </div>
-
-    {% endfor %}
-
-</div>
-
-<!-- Pagination -->
+<!-- PAGINATION -->
 {% if total_pages > 1 %}
-
-<nav aria-label="Job pages">
-    <ul class="pagination flex-wrap">
-
+<nav aria-label="Job pages" class="mb-5">
+    <ul class="pagination candidate-pagination flex-wrap">
         {% for n in range(1, total_pages + 1) %}
-
         <li class="page-item {% if n == page %}active{% endif %}">
-
             <a class="page-link"
-               href="/dashboard?{{ query_params }}&page={{ n }}">
+               href="/dashboard?{{ query_params }}&page={{ n }}"
+               {% if n == page %}aria-current="page"{% endif %}>
                 {{ n }}
             </a>
-
         </li>
-
         {% endfor %}
-
     </ul>
 </nav>
-
 {% endif %}
 
-<!-- My Applications -->
-<h4 class="mt-4">My Applications</h4>
+<!-- MY APPLICATIONS -->
+<section class="card candidate-table-card mb-4">
+    <div class="card-body">
+        <div class="candidate-section-heading mb-4">
+            <div>
+                <span class="candidate-section-label">APPLICATION TRACKING</span>
+                <h4 class="mt-2 mb-1">My Applications</h4>
+                <p class="text-muted small mb-0">
+                    Monitor your progress through the hiring process.
+                </p>
+            </div>
+            <span class="candidate-result-count">
+                {{ applications|length }} total
+            </span>
+        </div>
 
-<div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead>
-            <tr>
-                <th>Job</th>
-                <th>Status</th>
-                <th>Applied</th>
-                <th>Action</th>
-            </tr>
-        </thead>
+        <div class="table-responsive">
+            <table class="table candidate-data-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Job Position</th>
+                        <th>Status</th>
+                        <th>Applied On</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in applications %}
+                    <tr>
+                        <td>
+                            <strong>
+                                {{ job_titles.get(a.job_id, 'Job') }}
+                            </strong>
+                        </td>
 
-        <tbody>
-            {% for a in applications %}
+                        <td>
+                            <span class="candidate-status
+                                {% if a.status == 'selected' %}candidate-status-success
+                                {% elif a.status == 'shortlisted' %}candidate-status-info
+                                {% elif a.status == 'rejected' %}candidate-status-danger
+                                {% elif a.status == 'withdrawn' %}candidate-status-muted
+                                {% else %}candidate-status-pending{% endif %}">
+                                {{ a.status|replace('_', ' ')|title }}
+                            </span>
+                        </td>
 
-            <tr>
-                <td>
-                    {{ job_titles.get(a.job_id, 'Job') }}
-                </td>
+                        <td>
+                            {{ a.applied_at.strftime('%d %b %Y') }}
+                        </td>
 
-                <td>
-                    {{ a.status|replace('_', ' ')|title }}
-                </td>
-
-                <td>
-                    {{ a.applied_at.strftime('%d %b %Y') }}
-                </td>
-
-                <td>
-                    {% if a.status == 'applied' %}
-
-                    <form
-                        action="/web/applications/{{ a.id }}/withdraw"
-                        method="post"
-                        data-confirm="Withdraw this application?">
-
-                        <input
-                            type="hidden"
-                            name="csrf"
-                            value="{{ csrf }}">
-
-                        <button
-                            type="submit"
-                            class="btn btn-outline-danger btn-sm">
-                            Withdraw
-                        </button>
-                    </form>
-
+                        <td>
+                            {% if a.status == 'applied' %}
+                            <form action="/web/applications/{{ a.id }}/withdraw"
+                                  method="post"
+                                  data-confirm="Withdraw this application?">
+                                <input type="hidden"
+                                       name="csrf"
+                                       value="{{ csrf }}">
+                                <button type="submit"
+                                        class="btn btn-outline-danger btn-sm">
+                                    Withdraw
+                                </button>
+                            </form>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
                     {% else %}
-                        —
-                    {% endif %}
-                </td>
-            </tr>
+                    <tr>
+                        <td colspan="4">
+                            <div class="candidate-table-empty">
+                                No applications yet.
+                                Browse opportunities above to get started.
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
 
-            {% else %}
+<!-- MY INTERVIEWS -->
+<section class="card candidate-table-card mb-4">
+    <div class="card-body">
+        <div class="candidate-section-heading mb-4">
+            <div>
+                <span class="candidate-section-label">INTERVIEW CENTER</span>
+                <h4 class="mt-2 mb-1">My Interviews</h4>
+                <p class="text-muted small mb-0">
+                    View interview schedules and hiring outcomes.
+                </p>
+            </div>
+            <span class="candidate-result-count">
+                {{ interviews|length }} records
+            </span>
+        </div>
 
-            <tr>
-                <td colspan="4">
-                    No applications yet.
-                </td>
-            </tr>
-
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<!-- My Interviews -->
-<h4 class="mt-4">My Interviews</h4>
-
-<div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead>
-            <tr>
-                <th>Interview</th>
-                <th>Scheduled (UTC)</th>
-                <th>Mode</th>
-                <th>Details</th>
-                <th>Status</th>
-                <th>Result</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for i in interviews %}
-
-            <tr>
-                <td>#{{ i.id }}</td>
-
-                <td>
-                    {{ i.scheduled_at.strftime('%d %b %Y %H:%M') }}
-                </td>
-
-                <td>
-                    {{ i.interview_mode|title }}
-                </td>
-
-                <td>
-                    {{ i.meeting_details }}
-                </td>
-
-                <td>
-                    {{ i.status|title }}
-                </td>
-
-                <td>
-                    {{ i.result or 'Pending' }}
-                </td>
-            </tr>
-
-            {% else %}
-
-            <tr>
-                <td colspan="6">
-                    No interviews scheduled.
-                </td>
-            </tr>
-
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+        <div class="table-responsive">
+            <table class="table candidate-data-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Interview</th>
+                        <th>Scheduled (UTC)</th>
+                        <th>Mode</th>
+                        <th>Meeting Details</th>
+                        <th>Status</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in interviews %}
+                    <tr>
+                        <td><strong>#{{ i.id }}</strong></td>
+                        <td>
+                            {{ i.scheduled_at.strftime('%d %b %Y %H:%M') }}
+                        </td>
+                        <td>
+                            <span class="candidate-mode-badge">
+                                {{ i.interview_mode|title }}
+                            </span>
+                        </td>
+                        <td class="candidate-meeting-details">
+                            {{ i.meeting_details }}
+                        </td>
+                        <td>
+                            <span class="candidate-status
+                                {% if i.status == 'completed' %}candidate-status-success
+                                {% elif i.status == 'cancelled' %}candidate-status-danger
+                                {% else %}candidate-status-info{% endif %}">
+                                {{ i.status|title }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ i.result or 'Pending' }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="candidate-table-empty">
+                                No interviews scheduled yet.
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
 
 {% endblock %}
