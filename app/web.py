@@ -222,7 +222,7 @@ def logout(request: Request, csrf: str = Form(...)):
 @router.get("/dashboard")
 def dashboard(request: Request, db: Session = Depends(get_db),
               q: str = Query("", max_length=150), location: str = Query("", max_length=120),
-              min_salary: int | None = Query(None, ge=0),
+              min_salary: str | None = Query(None, max_length=30),
               page: int = Query(1, ge=1), page_size: int = Query(6, ge=1, le=50),
               app_status: str = Query("", max_length=30),
               candidate_q: str = Query("", max_length=150)):
@@ -230,14 +230,24 @@ def dashboard(request: Request, db: Session = Depends(get_db),
     if user is None:
         return redirect("/login")
     if user.role == "candidate":
+        # Empty optional salary input must not cause FastAPI integer parsing errors.
+        salary_filter = None
+        if min_salary is not None and min_salary.strip():
+            salary_text = min_salary.strip()
+            if not salary_text.isdecimal():
+                raise HTTPException(422, "Minimum salary must be a non-negative integer")
+            salary_filter = int(salary_text)
+            if salary_filter > 1_000_000_000_000:
+                raise HTTPException(422, "Minimum salary is too large")
+
         stmt = select(Job).where(Job.status == "open")
         if q.strip():
             term = f"%{q.strip()}%"
             stmt = stmt.where(or_(Job.title.ilike(term), Job.description.ilike(term)))
         if location.strip():
             stmt = stmt.where(Job.location.ilike(f"%{location.strip()}%"))
-        if min_salary is not None:
-            stmt = stmt.where(Job.salary_max >= min_salary)
+        if salary_filter is not None:
+            stmt = stmt.where(Job.salary_max >= salary_filter)
         total = db.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
         jobs = db.scalars(stmt.order_by(Job.created_at.desc(), Job.id.desc())
                           .offset((page - 1) * page_size).limit(page_size)).all()
@@ -249,12 +259,12 @@ def dashboard(request: Request, db: Session = Depends(get_db),
         job_ids = {a.job_id for a in applications}
         titles = {j.id: j.title for j in db.scalars(select(Job)).all()}
         params = {"q": q, "location": location, "page_size": page_size}
-        if min_salary is not None:
-            params["min_salary"] = min_salary
+        if salary_filter is not None:
+            params["min_salary"] = salary_filter
         return render(request, "candidate.html", user=user, jobs=jobs, applications=applications,
                       interviews=interviews, applied_job_ids=job_ids, job_titles=titles,
                       total_jobs=total, page=page, total_pages=ceil(total / page_size),
-                      query_params=urlencode(params), q=q, location=location, min_salary=min_salary,
+                      query_params=urlencode(params), q=q, location=location, min_salary=salary_filter,
                       page_size=page_size)
     if user.role == "recruiter":
         jobs = db.scalars(select(Job).where(Job.recruiter_id == user.id)
