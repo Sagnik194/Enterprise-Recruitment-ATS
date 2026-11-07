@@ -930,3 +930,299 @@ details summary::-webkit-details-marker {
 .sagniq-count{display:inline-block;background:#eef2ff;color:#4338ca;border-radius:20px;padding:5px 11px;font-size:.73rem;font-weight:700}
 .sagniq-role{display:inline-block;padding:5px 9px;background:#f1f5f9;border-radius:8px;font-size:.77rem;font-weight:650;color:#334155}
 @media(max-width:575.98px){.sagniq-header-icon{display:none}.sagniq-page-header{margin-bottom:17px}.sagniq-metric{min-height:116px}.sagniq-feature-card .card-body{padding:19px}}
+
+/* ==========================================
+   SAGNIQ APPLICATION & REVIEW PAGES
+   ========================================== */
+
+.sagniq-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 30px;
+}
+
+.sagniq-eyebrow {
+    color: #6366f1;
+    font-size: .7rem;
+    font-weight: 800;
+    letter-spacing: .11em;
+}
+
+.application-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 330px;
+    align-items: start;
+    gap: 24px;
+}
+
+.application-main {
+    min-width: 0;
+}
+
+.sagniq-section-card {
+    border-radius: 18px;
+}
+
+.sagniq-section-card .card-body {
+    padding: 28px;
+}
+
+.sagniq-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e9edf5;
+}
+
+.sagniq-step {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 43px;
+    height: 43px;
+    border-radius: 13px;
+    background: #eef2ff;
+    color: #4f46e5;
+    font-size: .84rem;
+    font-weight: 800;
+}
+
+.sagniq-upload-box {
+    height: 100%;
+    padding: 20px;
+    border: 1px dashed #a5b4fc;
+    border-radius: 13px;
+    background: #f8faff;
+}
+
+.sagniq-upload-box .form-control {
+    background: white;
+}
+
+.sagniq-submit-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 23px 26px;
+    border: 1px solid #dfe5f3;
+    border-radius: 17px;
+    background: white;
+    box-shadow: var(--shadow);
+}
+
+.sagniq-submit-panel strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1rem;
+}
+
+.sagniq-job-summary {
+    position: sticky;
+    top: 25px;
+    overflow: hidden;
+}
+
+.sagniq-job-summary::before {
+    content: "";
+    display: block;
+    height: 6px;
+    background: linear-gradient(90deg, #6366f1, #14b8a6);
+}
+
+.sagniq-job-summary .card-body {
+    padding: 24px;
+}
+
+.sagniq-summary-divider {
+    height: 1px;
+    margin: 20px 0;
+    background: #e8edf5;
+}
+
+.sagniq-job-description {
+    color: #475569;
+    font-size: .86rem;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* Recruiter application review */
+
+.sagniq-review-banner {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 26px;
+    border: 1px solid #dfe5f3;
+    border-radius: 19px;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(99,102,241,.09), transparent 35%),
+        white;
+    box-shadow: var(--shadow);
+}
+
+.sagniq-review-banner h3 {
+    font-size: 1.4rem;
+}
+
+.sagniq-review-avatar {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 19px;
+    background: linear-gradient(135deg, #6366f1, #14b8a6);
+    color: white;
+    font-size: 1.65rem;
+    font-weight: 800;
+}
+
+.sagniq-status-pill {
+    display: inline-block;
+    padding: 8px 12px;
+    border: 1px solid #c7d2fe;
+    border-radius: 9px;
+    background: #eef2ff;
+    color: #4338ca;
+    font-size: .76rem;
+    font-weight: 750;
+}
+
+.sagniq-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+    margin: 0;
+}
+
+.sagniq-profile-grid > div {
+    min-width: 0;
+    padding: 13px 15px;
+    border: 1px solid #edf0f7;
+    border-radius: 11px;
+    background: #fafbff;
+}
+
+.sagniq-profile-grid dt {
+    margin-bottom: 6px;
+    color: #64748b;
+    font-size: .72rem;
+    font-weight: 650;
+}
+
+.sagniq-profile-grid dd {
+    margin: 0;
+    color: #17233c;
+    font-size: .85rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.sagniq-skills-content {
+    padding: 18px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #334155;
+    font-size: .9rem;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.sagniq-document-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 17px 0;
+    border-bottom: 1px solid #edf0f6;
+}
+
+.sagniq-document-row:last-child {
+    border-bottom: 0;
+}
+
+.sagniq-document-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 48px;
+    border-radius: 10px;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: .72rem;
+    font-weight: 800;
+}
+
+.sagniq-document-row .flex-grow-1 {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.sagniq-info-note {
+    padding: 14px;
+    border-left: 3px solid #6366f1;
+    border-radius: 8px;
+    background: #f5f6ff;
+    color: #475569;
+    font-size: .82rem;
+    line-height: 1.7;
+}
+
+/* Responsive */
+
+@media (max-width: 991.98px) {
+    .application-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .application-sidebar {
+        order: -1;
+    }
+
+    .sagniq-job-summary {
+        position: static;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .sagniq-section-card .card-body {
+        padding: 19px;
+    }
+
+    .sagniq-section-heading {
+        gap: 11px;
+    }
+
+    .sagniq-step {
+        width: 36px;
+        height: 36px;
+    }
+
+    .sagniq-profile-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sagniq-review-banner {
+        padding: 20px;
+    }
+
+    .sagniq-submit-panel {
+        padding: 20px;
+    }
+
+    .sagniq-submit-panel .btn {
+        width: 100%;
+    }
+}

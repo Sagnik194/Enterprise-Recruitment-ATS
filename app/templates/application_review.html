@@ -1,83 +1,292 @@
+
 {% extends 'base.html' %}
+
+{% block title %}Application Review | Sagniq{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-  <div>
-    <h2>Candidate Application Review</h2>
-    <p class="text-muted mb-0">Application #{{ application.id }} · {{ job.title }} · {{ application.status|replace('_', ' ')|title }}</p>
-  </div>
-  <a class="btn btn-outline-secondary" href="/dashboard">Back to recruiter dashboard</a>
+
+<div class="sagniq-page-header">
+    <div>
+        <span class="sagniq-eyebrow">RECRUITER PORTAL / CANDIDATE REVIEW</span>
+        <h2 class="mt-2 mb-2">Candidate Application Review</h2>
+        <p class="text-muted mb-0">
+            Application #{{ application.id }} · {{ job.title }}
+        </p>
+    </div>
+    <a href="/dashboard" class="btn btn-outline-secondary">
+        ← Recruiter Dashboard
+    </a>
 </div>
+
 {% if request.query_params.get('notice') == 'evaluation_saved' %}
-<div class="alert alert-success" role="status">Evaluation saved successfully.</div>
-{% endif %}
-<div class="row g-3">
-  <div class="col-lg-7">
-    <section class="card mb-3"><div class="card-body">
-      <h4>Candidate profile</h4>
-      <dl class="row mb-0">
-        <dt class="col-sm-4">Full name</dt><dd class="col-sm-8">{{ detail.full_name if detail else candidate.full_name }}</dd>
-        <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ detail.email if detail else candidate.email }}</dd>
-        {% if detail %}
-        <dt class="col-sm-4">Phone</dt><dd class="col-sm-8">{{ detail.phone }}</dd>
-        <dt class="col-sm-4">City</dt><dd class="col-sm-8">{{ detail.city }}</dd>
-        <dt class="col-sm-4">Degree</dt><dd class="col-sm-8">{{ detail.degree }}</dd>
-        <dt class="col-sm-4">College</dt><dd class="col-sm-8">{{ detail.college }}</dd>
-        <dt class="col-sm-4">Graduation year</dt><dd class="col-sm-8">{{ detail.graduation_year }}</dd>
-        <dt class="col-sm-4">CGPA</dt><dd class="col-sm-8">{{ detail.cgpa if detail.cgpa is not none else 'Not provided' }}</dd>
-        <dt class="col-sm-4">10th percentage</dt><dd class="col-sm-8">{{ detail.tenth_percentage if detail.tenth_percentage is not none else 'Not provided' }}</dd>
-        <dt class="col-sm-4">12th percentage</dt><dd class="col-sm-8">{{ detail.twelfth_percentage if detail.twelfth_percentage is not none else 'Not provided' }}</dd>
-        <dt class="col-sm-4">Active backlogs</dt><dd class="col-sm-8">{{ detail.active_backlogs }}</dd>
-        <dt class="col-sm-4">Experience</dt><dd class="col-sm-8">{{ detail.experience_months }} months</dd>
-        <dt class="col-sm-4">GitHub</dt><dd class="col-sm-8">{% if detail.github_url %}<a href="{{ detail.github_url }}" target="_blank" rel="noopener noreferrer">View GitHub</a>{% else %}Not provided{% endif %}</dd>
-        <dt class="col-sm-4">LinkedIn</dt><dd class="col-sm-8">{% if detail.linkedin_url %}<a href="{{ detail.linkedin_url }}" target="_blank" rel="noopener noreferrer">View LinkedIn</a>{% else %}Not provided{% endif %}</dd>
-        {% endif %}
-      </dl>
-    </div></section>
-    <section class="card mb-3"><div class="card-body">
-      <h4>Technical skills</h4>
-      <p class="mb-0" style="white-space:pre-wrap">{{ detail.skills if detail else 'No detailed profile available for this application.' }}</p>
-    </div></section>
-    <section class="card mb-3"><div class="card-body">
-      <h4>Private documents</h4>
-      <p class="text-muted small">Document links are issued only after recruiter authorization and expire after 60 seconds.</p>
-      {% for document in documents %}
-      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom py-2">
-        <div><strong>{{ document.document_type|title }}</strong><div class="small text-muted">{{ document.original_filename }} · {{ (document.size_bytes / 1024)|round(1) }} KB</div></div>
-        <a class="btn btn-outline-primary btn-sm" href="/web/recruiter/applications/{{ application.id }}/documents/{{ document.id }}" target="_blank" rel="noopener noreferrer">View PDF</a>
-      </div>
-      {% else %}<p>No uploaded documents for this application.</p>{% endfor %}
-    </div></section>
-  </div>
-  <div class="col-lg-5">
-    <section class="card mb-3"><div class="card-body">
-      <h4>Internal evaluation</h4>
-      {% if detail %}
-      <form method="post" action="/web/recruiter/applications/{{ application.id }}/evaluation">
-        <input type="hidden" name="csrf" value="{{ csrf }}">
-        <label class="form-label" for="rating">Rating</label>
-        <select class="form-select mb-3" name="evaluation_rating" id="rating">
-          <option value="">Not rated</option>
-          {% for rating in range(1,6) %}<option value="{{ rating }}" {% if detail.evaluation_rating == rating %}selected{% endif %}>{{ rating }} / 5</option>{% endfor %}
-        </select>
-        <label class="form-label" for="notes">Recruiter notes (private)</label>
-        <textarea class="form-control mb-3" name="recruiter_notes" id="notes" rows="6" maxlength="5000" placeholder="Technical strengths, experience, follow-up questions...">{{ detail.recruiter_notes or '' }}</textarea>
-        <button class="btn btn-primary">Save evaluation</button>
-      </form>
-      {% else %}<p class="text-muted">This is a legacy application without a detailed candidate profile.</p>{% endif %}
-    </div></section>
-    <section class="card"><div class="card-body">
-      <h4>Application decision</h4>
-      <p>Current status: <strong>{{ application.status|replace('_', ' ')|title }}</strong></p>
-      {% if application.status in ['applied', 'shortlisted'] %}
-      <div class="d-flex gap-2 flex-wrap">
-        {% if application.status == 'applied' %}
-        <form method="post" action="/web/applications/{{ application.id }}/shortlist"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn btn-success">Shortlist</button></form>
-        {% endif %}
-        <form method="post" action="/web/applications/{{ application.id }}/reject"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn btn-outline-danger">Reject</button></form>
-      </div>
-      {% else %}<p class="text-muted mb-0">No shortlist or reject action is available for this status.</p>{% endif %}
-      <p class="small text-muted mt-3 mb-0">Interview scheduling remains available on the recruiter dashboard after shortlisting.</p>
-    </div></section>
-  </div>
+<div class="alert alert-success" role="status">
+    Evaluation saved successfully.
 </div>
+{% endif %}
+
+<div class="sagniq-review-banner mb-4">
+    <div class="sagniq-review-avatar">
+        {{ (detail.full_name if detail else candidate.full_name)[:1]|upper }}
+    </div>
+    <div class="flex-grow-1">
+        <span class="sagniq-eyebrow">APPLICANT PROFILE</span>
+        <h3 class="mb-1">
+            {{ detail.full_name if detail else candidate.full_name }}
+        </h3>
+        <p class="mb-0">
+            {{ detail.email if detail else candidate.email }}
+        </p>
+    </div>
+    <div>
+        <span class="sagniq-status-pill">
+            {{ application.status|replace('_', ' ')|title }}
+        </span>
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-7">
+
+        <section class="card sagniq-section-card mb-4">
+            <div class="card-body">
+                <div class="sagniq-section-heading">
+                    <span class="sagniq-step">01</span>
+                    <div>
+                        <h4 class="mb-1">Candidate Profile</h4>
+                        <p class="text-muted small mb-0">
+                            Personal, academic and professional information
+                        </p>
+                    </div>
+                </div>
+
+                <dl class="sagniq-profile-grid">
+                    <div>
+                        <dt>Full Name</dt>
+                        <dd>{{ detail.full_name if detail else candidate.full_name }}</dd>
+                    </div>
+                    <div>
+                        <dt>Email</dt>
+                        <dd>{{ detail.email if detail else candidate.email }}</dd>
+                    </div>
+
+                    {% if detail %}
+                    <div><dt>Phone</dt><dd>{{ detail.phone }}</dd></div>
+                    <div><dt>City</dt><dd>{{ detail.city }}</dd></div>
+                    <div><dt>Degree</dt><dd>{{ detail.degree }}</dd></div>
+                    <div><dt>College / University</dt><dd>{{ detail.college }}</dd></div>
+                    <div><dt>Graduation Year</dt><dd>{{ detail.graduation_year }}</dd></div>
+                    <div>
+                        <dt>CGPA</dt>
+                        <dd>{{ detail.cgpa if detail.cgpa is not none else 'Not provided' }}</dd>
+                    </div>
+                    <div>
+                        <dt>10th Percentage</dt>
+                        <dd>{{ detail.tenth_percentage if detail.tenth_percentage is not none else 'Not provided' }}</dd>
+                    </div>
+                    <div>
+                        <dt>12th Percentage</dt>
+                        <dd>{{ detail.twelfth_percentage if detail.twelfth_percentage is not none else 'Not provided' }}</dd>
+                    </div>
+                    <div>
+                        <dt>Active Backlogs</dt>
+                        <dd>{{ detail.active_backlogs }}</dd>
+                    </div>
+                    <div>
+                        <dt>Experience</dt>
+                        <dd>{{ detail.experience_months }} months</dd>
+                    </div>
+                    <div>
+                        <dt>GitHub</dt>
+                        <dd>
+                            {% if detail.github_url %}
+                            <a href="{{ detail.github_url }}" target="_blank"
+                               rel="noopener noreferrer">View GitHub ↗</a>
+                            {% else %}Not provided{% endif %}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt>LinkedIn</dt>
+                        <dd>
+                            {% if detail.linkedin_url %}
+                            <a href="{{ detail.linkedin_url }}" target="_blank"
+                               rel="noopener noreferrer">View LinkedIn ↗</a>
+                            {% else %}Not provided{% endif %}
+                        </dd>
+                    </div>
+                    {% endif %}
+                </dl>
+            </div>
+        </section>
+
+        <section class="card sagniq-section-card mb-4">
+            <div class="card-body">
+                <div class="sagniq-section-heading">
+                    <span class="sagniq-step">02</span>
+                    <div>
+                        <h4 class="mb-1">Technical Skills</h4>
+                        <p class="text-muted small mb-0">
+                            Candidate-provided technical expertise
+                        </p>
+                    </div>
+                </div>
+
+                <div class="sagniq-skills-content">
+                    {{ detail.skills if detail else 'No detailed profile available for this application.' }}
+                </div>
+            </div>
+        </section>
+
+        <section class="card sagniq-section-card mb-4">
+            <div class="card-body">
+                <div class="sagniq-section-heading">
+                    <span class="sagniq-step">03</span>
+                    <div>
+                        <h4 class="mb-1">Private Documents</h4>
+                        <p class="text-muted small mb-0">
+                            Authorized document access
+                        </p>
+                    </div>
+                </div>
+
+                <p class="small text-muted">
+                    Document links are issued after recruiter authorization
+                    and expire after 60 seconds.
+                </p>
+
+                {% for document in documents %}
+                <div class="sagniq-document-row">
+                    <div class="sagniq-document-icon">PDF</div>
+                    <div class="flex-grow-1">
+                        <strong>{{ document.document_type|title }}</strong>
+                        <div class="small text-muted">
+                            {{ document.original_filename }}
+                            · {{ (document.size_bytes / 1024)|round(1) }} KB
+                        </div>
+                    </div>
+                    <a class="btn btn-outline-primary btn-sm"
+                       href="/web/recruiter/applications/{{ application.id }}/documents/{{ document.id }}"
+                       target="_blank" rel="noopener noreferrer">
+                        View PDF ↗
+                    </a>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">
+                    No uploaded documents for this application.
+                </p>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <div class="col-lg-5">
+
+        <section class="card sagniq-section-card mb-4">
+            <div class="card-body">
+                <div class="sagniq-section-heading">
+                    <span class="sagniq-step">04</span>
+                    <div>
+                        <h4 class="mb-1">Internal Evaluation</h4>
+                        <p class="text-muted small mb-0">
+                            Private recruiter assessment
+                        </p>
+                    </div>
+                </div>
+
+                {% if detail %}
+                <form method="post"
+                      action="/web/recruiter/applications/{{ application.id }}/evaluation">
+
+                    <input type="hidden" name="csrf" value="{{ csrf }}">
+
+                    <label class="form-label" for="rating">
+                        Candidate Rating
+                    </label>
+                    <select class="form-select mb-3"
+                            name="evaluation_rating" id="rating">
+                        <option value="">Not rated</option>
+                        {% for rating in range(1, 6) %}
+                        <option value="{{ rating }}"
+                                {% if detail.evaluation_rating == rating %}selected{% endif %}>
+                            {{ rating }} / 5
+                        </option>
+                        {% endfor %}
+                    </select>
+
+                    <label class="form-label" for="notes">
+                        Recruiter Notes (Private)
+                    </label>
+                    <textarea class="form-control mb-3"
+                              name="recruiter_notes"
+                              id="notes" rows="7" maxlength="5000"
+                              placeholder="Technical strengths, experience, follow-up questions...">{{ detail.recruiter_notes or '' }}</textarea>
+
+                    <button type="submit"
+                            class="btn btn-sagniq-primary w-100">
+                        Save Evaluation
+                    </button>
+                </form>
+                {% else %}
+                <p class="text-muted mb-0">
+                    This is a legacy application without a detailed candidate profile.
+                </p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="card sagniq-section-card">
+            <div class="card-body">
+                <div class="sagniq-section-heading">
+                    <span class="sagniq-step">05</span>
+                    <div>
+                        <h4 class="mb-1">Application Decision</h4>
+                        <p class="text-muted small mb-0">
+                            Manage the candidate's hiring progress
+                        </p>
+                    </div>
+                </div>
+
+                <p class="mb-3">
+                    Current Status:
+                    <span class="sagniq-status-pill">
+                        {{ application.status|replace('_', ' ')|title }}
+                    </span>
+                </p>
+
+                {% if application.status in ['applied', 'shortlisted'] %}
+                <div class="d-flex gap-2 flex-wrap">
+                    {% if application.status == 'applied' %}
+                    <form method="post"
+                          action="/web/applications/{{ application.id }}/shortlist">
+                        <input type="hidden" name="csrf" value="{{ csrf }}">
+                        <button type="submit" class="btn btn-success">
+                            Shortlist
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <form method="post"
+                          action="/web/applications/{{ application.id }}/reject"
+                          data-confirm="Reject this candidate?">
+                        <input type="hidden" name="csrf" value="{{ csrf }}">
+                        <button type="submit" class="btn btn-outline-danger">
+                            Reject
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">
+                    No shortlist or reject action is available for this status.
+                </p>
+                {% endif %}
+
+                <div class="sagniq-info-note mt-3">
+                    Interview scheduling remains available on the
+                    recruiter dashboard after shortlisting.
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
 {% endblock %}
