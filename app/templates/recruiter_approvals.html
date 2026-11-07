@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center"><h2>Recruiter approvals</h2><a href="/dashboard" class="btn btn-outline-secondary">Admin dashboard</a></div>
+{% if request.query_params.get('notice') %}<div class="alert alert-info">Recruiter review saved.</div>{% endif %}
+<h4 class="mt-4">Pending requests ({{ pending|length }})</h4>
+<div class="table-responsive"><table class="table table-hover"><thead><tr><th>Name</th><th>Email</th><th>Registered</th><th>Actions</th></tr></thead><tbody>
+{% for r in pending %}<tr><td>{{ r.full_name }}</td><td>{{ r.email }}</td><td>{{ r.created_at.strftime('%d %b %Y') }}</td><td><div class="d-flex gap-2">
+<form method="post" action="/admin/recruiters/{{ r.id }}/approve"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn btn-success btn-sm">Approve</button></form>
+<form method="post" action="/admin/recruiters/{{ r.id }}/reject"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="btn btn-outline-danger btn-sm">Reject</button></form>
+</div></td></tr>{% else %}<tr><td colspan="4">No pending recruiter accounts.</td></tr>{% endfor %}</tbody></table></div>
+<h4 class="mt-4">Recently reviewed recruiters</h4><div class="table-responsive"><table class="table"><thead><tr><th>Name</th><th>Email</th><th>Status</th></tr></thead><tbody>
+{% for r in reviewed %}<tr><td>{{ r.full_name }}</td><td>{{ r.email }}</td><td>{{ r.approval_status|title }}</td></tr>{% else %}<tr><td colspan="3">No reviewed recruiters.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

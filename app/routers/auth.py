@@ -28,6 +28,10 @@ router = APIRouter(
 )
 
 
+# ==========================================
+# REGISTER NEW CANDIDATE
+# ==========================================
+
 @router.post(
     "/register",
     response_model=UserResponse,
@@ -37,8 +41,9 @@ def register(
     data: UserRegister,
     db: Annotated[Session, Depends(get_db)]
 ):
-    email = str(data.email).lower()
+    email = str(data.email).strip().lower()
 
+    # Check whether email already exists
     existing_user = db.scalar(
         select(User).where(User.email == email)
     )
@@ -49,19 +54,26 @@ def register(
             detail="Email already registered"
         )
 
+    # Public API registration creates
+    # candidate accounts only.
+    # Recruiters register through /register
+    # and require administrator approval.
     new_user = User(
-        full_name=data.full_name,
+        full_name=data.full_name.strip(),
         email=email,
         password_hash=hash_password(data.password),
-        role="candidate"
+        role="candidate",
+        approval_status="approved"
     )
 
     db.add(new_user)
 
     try:
         db.commit()
+
     except IntegrityError:
         db.rollback()
+
         raise HTTPException(
             status_code=409,
             detail="Email already registered"
@@ -72,13 +84,18 @@ def register(
     return new_user
 
 
+# ==========================================
+# LOGIN
+# ==========================================
+
 @router.post(
     "/login",
     response_model=TokenResponse
 )
 def login(
     form_data: Annotated[
-        OAuth2PasswordRequestForm, Depends()
+        OAuth2PasswordRequestForm,
+        Depends()
     ],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -88,6 +105,7 @@ def login(
         select(User).where(User.email == email)
     )
 
+    # Verify credentials
     if user is None or not verify_password(
         form_data.password,
         user.password_hash
@@ -100,6 +118,37 @@ def login(
             }
         )
 
+    # ======================================
+    # PHASE 11: RECRUITER APPROVAL CHECK
+    # ======================================
+
+    if user.role == "recruiter":
+
+        if user.approval_status == "pending":
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Your recruiter account is pending "
+                    "administrator approval."
+                )
+            )
+
+        if user.approval_status == "rejected":
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Your recruiter registration "
+                    "has been rejected."
+                )
+            )
+
+        if user.approval_status != "approved":
+            raise HTTPException(
+                status_code=403,
+                detail="Recruiter account is not approved"
+            )
+
+    # Generate JWT token
     token = create_access_token(user.id)
 
     return {
@@ -107,6 +156,10 @@ def login(
         "token_type": "bearer"
     }
 
+
+# ==========================================
+# LOGOUT
+# ==========================================
 
 @router.post(
     "/logout",

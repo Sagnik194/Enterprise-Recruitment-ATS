@@ -19,7 +19,7 @@ from app.models import Application, Interview, Job, User
 from app.phase7_models import JobRequirement
 from app.phase10_models import ApplicationDetail, ApplicationDocument
 from app.supabase_storage import upload_pdf, delete_document, get_signed_document_url
-from app.security import verify_password
+from app.security import verify_password, hash_password
 
 router = APIRouter(tags=["Web Dashboard"])
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent / "templates"))
@@ -60,6 +60,8 @@ def require_user(request: Request, db: Session, role=None):
         return None
     if role and user.role != role:
         raise HTTPException(403, "Access denied")
+    if user.role == "recruiter" and user.approval_status != "approved":
+        raise HTTPException(403, "Recruiter account is awaiting administrator approval")
     return user
 
 
@@ -116,10 +118,98 @@ def login_submit(request: Request, email: str = Form(...), password: str = Form(
     user = db.scalar(select(User).where(User.email == email.strip().lower()))
     if user is None or not verify_password(password, user.password_hash):
         return render(request, "login.html", error="Invalid email or password")
+    if user.role == "recruiter" and user.approval_status != "approved":
+        message = ("Your recruiter account is pending administrator approval."
+                   if user.approval_status == "pending"
+                   else "Your recruiter registration was not approved.")
+        return render(request, "login.html", error=message)
     request.session.clear()
     request.session["user_id"] = user.id
     request.session["csrf"] = secrets.token_urlsafe(32)
     return redirect()
+
+
+
+
+@router.get("/register")
+def registration_page(request: Request, db: Session = Depends(get_db)):
+    if user_from_session(request, db):
+        return redirect()
+    return render(request, "register.html", error=None, values={})
+
+
+@router.post("/register")
+def registration_submit(
+    request: Request,
+    full_name: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    confirm_password: str = Form(...),
+    role: str = Form(...),
+    csrf: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    check_csrf(request, csrf)
+    full_name = full_name.strip()
+    email = email.strip().lower()
+    values = {"full_name": full_name, "email": email, "role": role}
+    def error(message):
+        return render(request, "register.html", error=message, values=values)
+    if not (2 <= len(full_name) <= 120):
+        return error("Full name must contain 2–120 characters")
+    if not (3 <= len(email) <= 255) or not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email):
+        return error("Enter a valid email address")
+    if role not in {"candidate", "recruiter"}:
+        return error("Choose candidate or recruiter")
+    if not (12 <= len(password) <= 128):
+        return error("Password must be between 12 and 128 characters")
+    if password != confirm_password:
+        return error("Passwords do not match")
+    if db.scalar(select(User.id).where(User.email == email)) is not None:
+        return error("An account with this email already exists")
+    user = User(full_name=full_name, email=email,
+                password_hash=hash_password(password), role=role,
+                approval_status="pending" if role == "recruiter" else "approved")
+    db.add(user)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        return error("An account with this email already exists")
+    return redirect("/login", notice="registration_pending" if role == "recruiter" else "registration_success")
+
+
+@router.get("/admin/recruiters")
+def recruiter_approval_page(request: Request, db: Session = Depends(get_db)):
+    admin = require_user(request, db, "admin")
+    if admin is None:
+        return redirect("/login")
+    pending = db.scalars(select(User).where(User.role == "recruiter", User.approval_status == "pending")
+                         .order_by(User.created_at.asc(), User.id.asc())).all()
+    reviewed = db.scalars(select(User).where(User.role == "recruiter", User.approval_status != "pending")
+                          .order_by(User.id.desc()).limit(50)).all()
+    return render(request, "recruiter_approvals.html", user=admin, pending=pending, reviewed=reviewed)
+
+
+@router.post("/admin/recruiters/{recruiter_id}/{action}")
+def decide_recruiter(request: Request, recruiter_id: int, action: str,
+                     csrf: str = Form(...), db: Session = Depends(get_db)):
+    check_csrf(request, csrf)
+    admin = require_user(request, db, "admin")
+    if admin is None:
+        return redirect("/login")
+    if action not in {"approve", "reject"}:
+        raise HTTPException(404, "Unknown action")
+    recruiter = db.scalar(select(User).where(User.id == recruiter_id, User.role == "recruiter")
+                          .with_for_update())
+    if recruiter is None:
+        raise HTTPException(404, "Recruiter not found")
+    if recruiter.approval_status != "pending":
+        raise HTTPException(409, "This recruiter has already been reviewed")
+    recruiter.approval_status = "approved" if action == "approve" else "rejected"
+    recruiter.approved_at = datetime.now(timezone.utc).replace(tzinfo=None) if action == "approve" else None
+    db.commit()
+    return redirect("/admin/recruiters", notice="recruiter_" + recruiter.approval_status)
 
 
 @router.post("/logout")
