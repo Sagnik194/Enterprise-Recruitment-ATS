@@ -298,7 +298,29 @@ This is a high-level guide to the repository; additional modules and phase-speci
 - The Phase 7 profile resume is stored locally, while application attachments use Supabase Storage. These storage paths have different persistence characteristics.
 - The checked-in Render Blueprint does not list Supabase or MySQL TLS environment variables. Add the required values to the deployment environment when applicable.
 - The checked-in README previously contained proposed Phase 8 integration instructions. Those instructions have been preserved as a separate document with implementation status and integration cautions.
+## Application Screenshots
 
+### Landing Page
+![Landing Page](screenshots/landing-page.png)
+
+### Candidate Dashboard
+![Candidate Dashboard](screenshots/candidate-dashboard.png)
+
+### Recruiter Dashboard
+![Recruiter Dashboard](screenshots/recruiter-dashboard.png)
+
+### Admin Dashboard
+![Admin Dashboard](screenshots/admin-dashboard.png)
+
+### Application Review
+![Application Review](screenshots/application-review.png)
+
+### Interview Management
+![Interview Management](screenshots/interview-management.png)
+
+## Architecture
+
+See [System Architecture](docs/ARCHITECTURE.md).
 ## Future improvements
 
 Potential next steps, subject to implementation and testing:
